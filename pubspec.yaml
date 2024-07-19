@@ -1,8 +1,7 @@
 name: bloc_toolkit
 description: "A package that provides a set of tools for efficient and flexible state management using the Bloc pattern."
 version: 0.0.1-beta.1
-homepage: none
-repository: https://github.com/dadagov125/bloc_toolkit
+homepage: https://github.com/dadagov125/bloc_toolkit
 
 environment:
   sdk: '>=2.12.0 <4.0.0'

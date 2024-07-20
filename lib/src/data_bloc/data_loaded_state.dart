@@ -2,34 +2,37 @@ part of 'data_bloc.dart';
 
 // ----- Loaded
 @immutable
-abstract class LoadedDataS<Data> extends DataS<Data> {
-  const LoadedDataS(this.data);
+abstract class LoadedDataS<Data, Params> extends DataS<Data> {
+  const LoadedDataS(this.data, {this.params});
 
   final Data data;
+  final Params? params;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is LoadedDataS &&
           runtimeType == other.runtimeType &&
-          data == other.data;
+          data == other.data &&
+          params == other.params;
 
   @override
-  int get hashCode => data.hashCode;
+  int get hashCode => data.hashCode ^ params.hashCode;
 }
 
 /// Idle
-class LoadedDataSuccessS<Data> extends LoadedDataS<Data>
+class LoadedDataSuccessS<Data, Params> extends LoadedDataS<Data, Params>
     implements ProgressFinished<Data> {
-  const LoadedDataSuccessS(Data data) : super(data);
+  const LoadedDataSuccessS(Data data, {Params? params})
+      : super(data, params: params);
 }
 
 /// Progress
-class ReloadingDataS<Data> extends LoadedDataS<Data> implements Progress<Data> {
-  ReloadingDataS(
-    LoadedDataS<Data> old, {
-    required this.isNextLoading,
-  }) : super(old.data);
+class ReloadingDataS<Data, Params> extends LoadedDataS<Data, Params>
+    implements Progress<Data> {
+  ReloadingDataS(LoadedDataS<Data, Params> oldState,
+      {required this.isNextLoading})
+      : super(oldState.data, params: oldState.params);
 
   final bool isNextLoading;
 
@@ -46,18 +49,19 @@ class ReloadingDataS<Data> extends LoadedDataS<Data> implements Progress<Data> {
 }
 
 /// Finished
-class ReloadingDataFinishedS<Data> extends LoadedDataS<Data>
+class ReloadingDataFinishedS<Data, Params> extends LoadedDataS<Data, Params>
     implements ProgressFinished<Data> {
-  const ReloadingDataFinishedS(Data data) : super(data);
+  const ReloadingDataFinishedS(Data data, {Params? params})
+      : super(data, params: params);
 }
 
 /// Error&Finished
-class ReloadingErrorS<Data> extends LoadedDataS<Data>
+class ReloadingErrorS<Data, Params> extends LoadedDataS<Data, Params>
     implements ProgressError<Data> {
   ReloadingErrorS(
-    LoadedDataS<Data> old,
+    LoadedDataS<Data, Params> oldState,
     this.error,
-  ) : super(old.data);
+  ) : super(oldState.data, params: oldState.params);
 
   @override
   final DataException error;

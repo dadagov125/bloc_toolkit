@@ -17,31 +17,31 @@ part 'data_unloaded_state.dart';
 //------ types
 typedef OnLoading<Data> = void Function(Emitter<DataS<Data>> emit);
 
-typedef OnLoadingSuccess<Data> = void Function(
+typedef OnLoadingSuccess<Data, Params> = void Function(
   Emitter<DataS<Data>> emit,
-  Data data,
-);
+  Data data, {
+  Params? params,
+});
 
-typedef OnLoadingError<Data> = void Function(
+typedef OnLoadingError<Data, Params> = void Function(
   DataException error,
   UnloadedDataS<Data> state,
+  Emitter<DataS<Data>> emit, {
+  Params? params,
+});
+
+typedef OnReloading<Data, Params> = void Function(
   Emitter<DataS<Data>> emit,
+  LoadedDataS<Data, Params> oldState,
+  ReloadDataE<Params> event,
 );
 
-typedef OnReloading<Data> = void Function(
-  Emitter<DataS<Data>> emit,
-  LoadedDataS<Data> oldState,
-  ReloadDataE event,
-);
+typedef OnReloadingFinished<Data, Params> = void
+    Function(Emitter<DataS<Data>> emit, Data data, {Params? params});
 
-typedef OnReloadingFinished<Data> = void Function(
-  Emitter<DataS<Data>> emit,
-  Data data,
-);
-
-typedef OnReloadingError<Data> = void Function(
+typedef OnReloadingError<Data, Params> = void Function(
   DataException error,
-  LoadedDataS<Data> state,
+  LoadedDataS<Data, Params> state,
   Emitter<DataS<Data>> emit,
 );
 
@@ -51,22 +51,32 @@ void _$onLoading<Data>(Emitter<DataS<Data>> emit) {
   emit(const LoadingDataS());
 }
 
-void _$onLoadingSuccess<Data>(Emitter<DataS<Data>> emit, Data data) {
-  emit(LoadedDataSuccessS(data));
+void _$onLoadingSuccess<Data, Params>(
+  Emitter<DataS<Data>> emit,
+  Data data, {
+  Params? params,
+}) {
+  emit(LoadedDataSuccessS(data, params: params));
 }
 
-void _$onLoadingError<Data>(
+void _$onLoadingError<Data, Params>(
   DataException error,
   UnloadedDataS<Data> state,
-  Emitter<DataS<Data>> emit,
-) {
-  emit(LoadingDataErrorS(error));
+  Emitter<DataS<Data>> emit, {
+  Params? params,
+}) {
+  emit(
+    LoadingDataErrorS(
+      error,
+      params: params,
+    ),
+  );
 }
 
-void _$onReloading<Data>(
+void _$onReloading<Data, Params>(
   Emitter<DataS<Data>> emit,
-  LoadedDataS<Data> oldState,
-  ReloadDataE event,
+  LoadedDataS<Data, Params> oldState,
+  ReloadDataE<Params> event,
 ) {
   emit(
     ReloadingDataS(
@@ -76,29 +86,39 @@ void _$onReloading<Data>(
   );
 }
 
-void _$onReloadingFinished<Data>(Emitter<DataS<Data>> emit, Data data) {
-  emit(ReloadingDataFinishedS(data));
+void _$onReloadingFinished<Data, Params>(
+  Emitter<DataS<Data>> emit,
+  Data data, {
+  Params? params,
+}) {
+  emit(
+    ReloadingDataFinishedS(
+      data,
+      params: params,
+    ),
+  );
 }
 
-void _$onReloadingError<Data>(
+void _$onReloadingError<Data, Params>(
   DataException error,
-  LoadedDataS<Data> state,
+  LoadedDataS<Data, Params> state,
   Emitter<DataS<Data>> emit,
 ) {
   emit(ReloadingErrorS(state, error));
-  emit(LoadedDataSuccessS(state.data));
+  emit(LoadedDataSuccessS(state.data, params: state.params));
 }
 
 //----- Internal bloc
-abstract class InternalDataBloc<Data> extends Bloc<DataE, DataS<Data>> {
+abstract class InternalDataBloc<Data, Params>
+    extends Bloc<DataE<Params>, DataS<Data>> {
   InternalDataBloc({
-    EventTransformer<DataE>? transformer,
+    EventTransformer<DataE<Params>>? transformer,
     OnLoading<Data>? overridedOnLoading,
-    OnLoadingSuccess<Data>? overridedOnLoadingSuccess,
-    OnLoadingError<Data>? overridedOnLoadingError,
-    OnReloading<Data>? overridedOnReloading,
-    OnReloadingFinished<Data>? overridedOnReloadingFinished,
-    OnReloadingError<Data>? overridedOnReloadingError,
+    OnLoadingSuccess<Data, Params>? overridedOnLoadingSuccess,
+    OnLoadingError<Data, Params>? overridedOnLoadingError,
+    OnReloading<Data, Params>? overridedOnReloading,
+    OnReloadingFinished<Data, Params>? overridedOnReloadingFinished,
+    OnReloadingError<Data, Params>? overridedOnReloadingError,
   })  : onLoading = overridedOnLoading ?? _$onLoading,
         onLoadingSuccess = overridedOnLoadingSuccess ?? _$onLoadingSuccess,
         onLoadingError = overridedOnLoadingError ?? _$onLoadingError,
@@ -107,47 +127,48 @@ abstract class InternalDataBloc<Data> extends Bloc<DataE, DataS<Data>> {
             overridedOnReloadingFinished ?? _$onReloadingFinished,
         onReloadingError = overridedOnReloadingError ?? _$onReloadingError,
         super(const UnloadedDataS()) {
-    on<DataE>(
+    on<DataE<Params>>(
       _handleEvent,
       transformer: transformer ?? droppable(),
     );
   }
 
   final OnLoading<Data> onLoading;
-  final OnReloading<Data> onReloading;
-  final OnLoadingSuccess<Data> onLoadingSuccess;
-  final OnReloadingFinished<Data> onReloadingFinished;
-  final OnLoadingError<Data> onLoadingError;
-  final OnReloadingError<Data> onReloadingError;
+  final OnReloading<Data, Params> onReloading;
+  final OnLoadingSuccess<Data, Params> onLoadingSuccess;
+  final OnReloadingFinished<Data, Params> onReloadingFinished;
+  final OnLoadingError<Data, Params> onLoadingError;
+  final OnReloadingError<Data, Params> onReloadingError;
 
   @protected
-  FutureOr<Data> loadData(DataS<Data> oldState, LoadDataE event);
+  FutureOr<Data> loadData(DataS<Data> oldState, LoadDataE<Params> event);
 
-  FutureOr<void> _handleEvent(DataE event, Emitter<DataS<Data>> emit) {
-    if (event is ReloadDataE) {
+  FutureOr<void> _handleEvent(DataE<Params> event, Emitter<DataS<Data>> emit) {
+    if (event is ReloadDataE<Params>) {
       return _reload(
         event,
         emit,
       );
-    } else if (event is LoadDataE) {
+    } else if (event is LoadDataE<Params>) {
       return _load(
         event,
         emit,
       );
     }
-    if (event is UpdateDataE<Data>) {
+    if (event is UpdateDataE<Data, Params>) {
       return _update(event, emit);
     }
-    if (event is InitializeDataE<Data>) {
+    if (event is InitializeDataE<Data, Params>) {
       return _initialize(event, emit);
     }
   }
 
   Future<void> _load(
-    LoadDataE event,
+    LoadDataE<Params> event,
     Emitter<DataS<Data>> emit,
   ) async {
     final oldState = state;
+    final params = event.params;
     if (oldState is! UnloadedDataS<Data>) {
       return;
     }
@@ -155,14 +176,20 @@ abstract class InternalDataBloc<Data> extends Bloc<DataE, DataS<Data>> {
       onLoading(emit);
       final data = await loadData(oldState, event);
 
-      onLoadingSuccess(emit, data);
+      onLoadingSuccess(emit, data, params: params);
     } on DataException catch (error) {
-      onLoadingError(error, oldState, emit);
+      onLoadingError(
+        error,
+        oldState,
+        emit,
+        params: params,
+      );
     } on Object catch (error, stackTrace) {
       onLoadingError(
         UnhandledDataException(error: error, stackTrace: stackTrace),
         oldState,
         emit,
+        params: params,
       );
 
       rethrow;
@@ -170,18 +197,19 @@ abstract class InternalDataBloc<Data> extends Bloc<DataE, DataS<Data>> {
   }
 
   Future<void> _reload(
-    ReloadDataE event,
+    ReloadDataE<Params> event,
     Emitter<DataS<Data>> emit,
   ) async {
     final oldState = state;
-    if (oldState is! LoadedDataS<Data>) {
+    final params = event.params;
+    if (oldState is! LoadedDataS<Data, Params>) {
       return;
     }
     try {
       onReloading(emit, oldState, event);
       final data = await loadData(oldState, event);
-      onReloadingFinished(emit, data);
-      onLoadingSuccess(emit, data);
+      onReloadingFinished(emit, data, params: params);
+      onLoadingSuccess(emit, data, params: params);
     } on DataException catch (error) {
       onReloadingError(error, oldState, emit);
     } on Object catch (error, stackTrace) {
@@ -195,30 +223,42 @@ abstract class InternalDataBloc<Data> extends Bloc<DataE, DataS<Data>> {
     }
   }
 
-  FutureOr<void> _update(UpdateDataE<Data> event, Emitter<DataS<Data>> emit) {
+  FutureOr<void> _update(
+    UpdateDataE<Data, Params> event,
+    Emitter<DataS<Data>> emit,
+  ) {
     final oldState = state;
-    if (oldState is LoadedDataS<Data>) {
-      final updatedData = event.update(oldState.data);
-      onLoadingSuccess(emit, updatedData);
+    if (oldState is LoadedDataS<Data, Params>) {
+      onLoadingSuccess(
+        emit,
+        event.update(
+          oldState.data,
+        ),
+        params: event.params ?? oldState.params,
+      );
     }
   }
 
   FutureOr<void> _initialize(
-    InitializeDataE<Data> event,
+    InitializeDataE<Data, Params> event,
     Emitter<DataS<Data>> emit,
   ) {
     if (state is UnloadedDataS<Data>) {
-      emit(LoadedDataSuccessS(event.data));
+      onLoadingSuccess(
+        emit,
+        event.data,
+        params: event.params,
+      );
     }
   }
 }
 
 //----- public bloc
-abstract class DataBloc<Data> extends InternalDataBloc<Data> {
+abstract class DataBloc<Data, Params> extends InternalDataBloc<Data, Params> {
   DataBloc({
-    EventTransformer<DataE>? transformer,
-    OnLoadingError<Data>? overridedOnLoadingError,
-    OnReloadingError<Data>? overridedOnReloadingError,
+    EventTransformer<DataE<Params>>? transformer,
+    OnLoadingError<Data, Params>? overridedOnLoadingError,
+    OnReloadingError<Data, Params>? overridedOnReloadingError,
   }) : super(
           transformer: transformer,
           overridedOnLoadingError: overridedOnLoadingError,

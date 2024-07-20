@@ -1,16 +1,29 @@
 part of 'data_bloc.dart';
 
-abstract class DataE {
-  const DataE();
+abstract class DataE<Params> {
+  const DataE({this.params});
+
+  final Params? params;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DataE &&
+          runtimeType == other.runtimeType &&
+          params == other.params;
+
+  @override
+  int get hashCode => params.hashCode;
 }
 
-class LoadDataE extends DataE {
-  const LoadDataE();
+class LoadDataE<Params> extends DataE<Params> {
+  const LoadDataE({Params? params}) : super(params: params);
 }
 
 @immutable
-class ReloadDataE extends LoadDataE {
-  const ReloadDataE({this.isNextLoading = true});
+class ReloadDataE<Params> extends LoadDataE<Params> {
+  const ReloadDataE({this.isNextLoading = false, Params? params})
+      : super(params: params);
 
   final bool isNextLoading;
 
@@ -25,15 +38,15 @@ class ReloadDataE extends LoadDataE {
   int get hashCode => isNextLoading.hashCode;
 }
 
-class UpdateDataE<Data> extends DataE {
-  const UpdateDataE(this.update);
+class UpdateDataE<Data, Params> extends DataE<Params> {
+  const UpdateDataE(this.update, {Params? params}) : super(params: params);
 
-  final Data Function(Data old) update;
+  final Data Function(Data oldData) update;
 }
 
 @immutable
-class InitializeDataE<Data> extends DataE {
-  const InitializeDataE(this.data);
+class InitializeDataE<Data, Params> extends DataE<Params> {
+  const InitializeDataE(this.data, {Params? params}) : super(params: params);
 
   final Data data;
 

@@ -191,8 +191,6 @@ abstract class InternalDataBloc<Data, Params>
         emit,
         params: params,
       );
-
-      rethrow;
     }
   }
 
@@ -218,8 +216,6 @@ abstract class InternalDataBloc<Data, Params>
         oldState,
         emit,
       );
-
-      rethrow;
     }
   }
 
@@ -229,13 +225,21 @@ abstract class InternalDataBloc<Data, Params>
   ) {
     final oldState = state;
     if (oldState is LoadedDataS<Data, Params>) {
-      onLoadingSuccess(
-        emit,
-        event.update(
-          oldState.data,
-        ),
-        params: event.params ?? oldState.params,
-      );
+      try {
+        onLoadingSuccess(
+          emit,
+          event.update(
+            oldState.data,
+          ),
+          params: event.params ?? oldState.params,
+        );
+      } on Object catch (error, stackTrace) {
+        onReloadingError(
+          UnhandledDataException(error: error, stackTrace: stackTrace),
+          oldState,
+          emit,
+        );
+      }
     }
   }
 

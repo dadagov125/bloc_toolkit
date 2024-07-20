@@ -1,3 +1,3 @@
-export 'src/data_bloc/data_bloc.dart';
-export 'src/excaption/data_exception.dart';
-export 'src/excaption/unhandled_data_exception.dart';
+export 'src/data_bloc/data_bloc.dart' hide InternalDataBloc;
+export 'src/exception/data_exception.dart';
+export 'src/exception/unhandled_data_exception.dart';

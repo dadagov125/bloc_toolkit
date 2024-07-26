@@ -1,7 +1,47 @@
+import 'dart:async';
+
+import 'package:bloc_toolkit/bloc_toolkit.dart';
+import 'package:example/animal_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
 
 void main() {
+  final logger = Logger();
+  Bloc.observer = SimpleBlocObserver(logger);
   runApp(const MyApp());
+}
+
+class AnimalBloc extends DataBloc<String, void> {
+  AnimalBloc({required AnimalRepository animalRepository})
+      : _animalRepository = animalRepository;
+
+  final AnimalRepository _animalRepository;
+
+  @override
+  FutureOr<String> loadData(DataS<String> oldState, LoadDataE<void> event) {
+    return _animalRepository.getAnimal();
+  }
+}
+
+class SimpleBlocObserver extends BlocObserver {
+  SimpleBlocObserver(this._logger);
+
+  final Logger _logger;
+
+  @override
+  void onChange(BlocBase bloc, Change change) {
+    super.onChange(bloc, change);
+    final nextState = change.nextState;
+    if (nextState is ErrorS) {
+      final error = nextState.error;
+      if (error is UnhandledDataException) {
+        _logger.f('UnhandledDataException',
+            error: error.error, stackTrace: error.stackTrace);
+        //TODO: send to analytics
+      }
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -9,61 +49,91 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return const MaterialApp(
+      home: HomeScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({
+    super.key,
+  });
 
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  void _showSnackBar(BuildContext context, String text) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Colors.red,
+      content: Text(text),
+      duration: const Duration(milliseconds: 1000),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+          child: BlocProvider(
+              create: (_) => AnimalBloc(animalRepository: AnimalRepository()),
+              child: BlocConsumer<AnimalBloc, DataS<String>>(
+                listener: (context, state) => dataMapOrNull(
+                  state,
+                  error: (state) => errorMap(
+                    state,
+                    reloadingError: (state) {
+                      _showSnackBar(
+                          context, 'Reloading animal error: ${state.error}');
+                    },
+                    loadingError: (state) {
+                      _showSnackBar(
+                          context, 'Loading animal error: ${state.error}');
+                    },
+                  ),
+                ),
+                builder: (context, state) => dataMaybeMap(
+                  state,
+                  idle: (state) => idleMap(
+                    state,
+                    unloaded: (state) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Animal not loaded'),
+                        ElevatedButton(
+                          onPressed: () {
+                            context
+                                .read<AnimalBloc>()
+                                .add(const LoadDataE<void>());
+                          },
+                          child: const Text('Load Animal'),
+                        ),
+                      ],
+                    ),
+                    loaded: (state) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(state.data),
+                        ElevatedButton(
+                          onPressed: () {
+                            context
+                                .read<AnimalBloc>()
+                                .add(const ReloadDataE<void>());
+                          },
+                          child: const Text('Reload Animal'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  loading: (state) => loadingMap(state,
+                      loading: (state) => const Text('Loading animal...'),
+                      reloading: (state) => Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(state.data),
+                              const Text('Reloading animal...'),
+                            ],
+                          )),
+                  orElse: () => const SizedBox(),
+                ),
+              ))),
     );
   }
 }

@@ -1,6 +1,6 @@
 name: example
 description: "A new Flutter project."
-
+publish_to: 'none'
 
 version: 1.0.0+1
 
@@ -11,9 +11,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-
   cupertino_icons: ^1.0.6
+  bloc: ^8.0.0
+  flutter_bloc: ^8.0.0
+  faker: ^2.1.0
+  logger: ^2.4.0
+  bloc_toolkit:
+    path: ../
 
 dev_dependencies:
   flutter_test:

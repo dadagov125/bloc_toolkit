@@ -20,17 +20,17 @@ R? dataMapOrNull<R, Data>(
 
 R dataMaybeMap<R, Data>(
   DataS<Data> state, {
-  required R Function(IdleS<Data>) idle,
-  required R Function(LoadingS<Data>) loading,
-  required R Function(ErrorS<Data>) error,
+  R Function(IdleS<Data>)? idle,
+  R Function(LoadingS<Data>)? loading,
+  R Function(ErrorS<Data>)? error,
   required R Function() orElse,
 }) {
   if (state.isIdle) {
-    return idle(state as IdleS<Data>);
+    return idle!.call(state as IdleS<Data>);
   } else if (state.isLoading) {
-    return loading(state as LoadingS<Data>);
+    return loading!.call(state as LoadingS<Data>);
   } else if (state.isError) {
-    return error(state as ErrorS<Data>);
+    return error!.call(state as ErrorS<Data>);
   } else {
     return orElse();
   }
@@ -71,14 +71,14 @@ R? idleMapOrNull<R, Data, Params>(
 
 R idleMaybeMap<R, Data, Params>(
   IdleS<Data> state, {
-  required R Function(LoadedDataS<Data, Params>) loaded,
-  required R Function(UnloadedDataS<Data>) unloaded,
+  R Function(LoadedDataS<Data, Params>)? loaded,
+  R Function(UnloadedDataS<Data>)? unloaded,
   required R Function() orElse,
 }) {
   if (state is LoadedDataS) {
-    return loaded(state as LoadedDataS<Data, Params>);
+    return loaded!.call(state as LoadedDataS<Data, Params>);
   } else if (state is UnloadedDataS) {
-    return unloaded(state as UnloadedDataS<Data>);
+    return unloaded!.call(state as UnloadedDataS<Data>);
   } else {
     return orElse();
   }
@@ -116,14 +116,14 @@ R? loadingMapOrNull<R, Data, Params>(
 
 R loadingMaybeMap<R, Data, Params>(
   LoadingS<Data> state, {
-  required R Function(ReloadingDataS<Data, Params>) reloading,
-  required R Function(LoadingDataS<Data>) loading,
+  R Function(ReloadingDataS<Data, Params>)? reloading,
+  R Function(LoadingDataS<Data>)? loading,
   required R Function() orElse,
 }) {
   if (state is ReloadingDataS) {
-    return reloading(state as ReloadingDataS<Data, Params>);
+    return reloading!.call(state as ReloadingDataS<Data, Params>);
   } else if (state is LoadingDataS) {
-    return loading(state as LoadingDataS<Data>);
+    return loading!.call(state as LoadingDataS<Data>);
   } else {
     return orElse();
   }
@@ -161,14 +161,14 @@ R? errorMapOrNull<R, Data, Params>(
 
 R errorMaybeMap<R, Data, Params>(
   ErrorS<Data> state, {
-  required R Function(ReloadingDataErrorS<Data, Params>) reloadingError,
-  required R Function(LoadingDataErrorS<Data, Params>) loadingError,
+  R Function(ReloadingDataErrorS<Data, Params>)? reloadingError,
+  R Function(LoadingDataErrorS<Data, Params>)? loadingError,
   required R Function() orElse,
 }) {
   if (state is ReloadingDataErrorS) {
-    return reloadingError(state as ReloadingDataErrorS<Data, Params>);
+    return reloadingError!.call(state as ReloadingDataErrorS<Data, Params>);
   } else if (state is LoadingDataErrorS) {
-    return loadingError(state as LoadingDataErrorS<Data, Params>);
+    return loadingError!.call(state as LoadingDataErrorS<Data, Params>);
   } else {
     return orElse();
   }

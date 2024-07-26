@@ -36,8 +36,6 @@ typedef OnReloading<Data, Params> = void Function(
   ReloadDataE<Params> event,
 );
 
-typedef OnReloadingFinished<Data, Params> = void
-    Function(Emitter<DataS<Data>> emit, Data data, {Params? params});
 
 typedef OnReloadingError<Data, Params> = void Function(
   DataException error,
@@ -86,18 +84,6 @@ void _$onReloading<Data, Params>(
   );
 }
 
-void _$onReloadingFinished<Data, Params>(
-  Emitter<DataS<Data>> emit,
-  Data data, {
-  Params? params,
-}) {
-  emit(
-    ReloadingDataFinishedS(
-      data,
-      params: params,
-    ),
-  );
-}
 
 void _$onReloadingError<Data, Params>(
   DataException error,
@@ -117,14 +103,11 @@ abstract class InternalDataBloc<Data, Params>
     OnLoadingSuccess<Data, Params>? overridedOnLoadingSuccess,
     OnLoadingError<Data, Params>? overridedOnLoadingError,
     OnReloading<Data, Params>? overridedOnReloading,
-    OnReloadingFinished<Data, Params>? overridedOnReloadingFinished,
     OnReloadingError<Data, Params>? overridedOnReloadingError,
   })  : onLoading = overridedOnLoading ?? _$onLoading,
         onLoadingSuccess = overridedOnLoadingSuccess ?? _$onLoadingSuccess,
         onLoadingError = overridedOnLoadingError ?? _$onLoadingError,
         onReloading = overridedOnReloading ?? _$onReloading,
-        onReloadingFinished =
-            overridedOnReloadingFinished ?? _$onReloadingFinished,
         onReloadingError = overridedOnReloadingError ?? _$onReloadingError,
         super(const UnloadedDataS()) {
     on<DataE<Params>>(
@@ -136,7 +119,6 @@ abstract class InternalDataBloc<Data, Params>
   final OnLoading<Data> onLoading;
   final OnReloading<Data, Params> onReloading;
   final OnLoadingSuccess<Data, Params> onLoadingSuccess;
-  final OnReloadingFinished<Data, Params> onReloadingFinished;
   final OnLoadingError<Data, Params> onLoadingError;
   final OnReloadingError<Data, Params> onReloadingError;
 
@@ -206,7 +188,6 @@ abstract class InternalDataBloc<Data, Params>
     try {
       onReloading(emit, oldState, event);
       final data = await loadData(oldState, event);
-      onReloadingFinished(emit, data, params: params);
       onLoadingSuccess(emit, data, params: params);
     } on DataException catch (error) {
       onReloadingError(error, oldState, emit);

@@ -48,12 +48,6 @@ class ReloadingDataS<Data, Params> extends LoadedDataS<Data, Params>
   int get hashCode => super.hashCode ^ isNextLoading.hashCode;
 }
 
-/// Finished
-class ReloadingDataFinishedS<Data, Params> extends LoadedDataS<Data, Params>
-    implements ProgressFinished<Data> {
-  const ReloadingDataFinishedS(Data data, {Params? params})
-      : super(data, params: params);
-}
 
 /// Error&Finished
 class ReloadingErrorS<Data, Params> extends LoadedDataS<Data, Params>

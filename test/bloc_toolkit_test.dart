@@ -101,7 +101,7 @@ void main() {
       );
 
       blocTest<InternalDataBloc<int, String>, DataS<int>>(
-        'emits [ReloadingDataS, ReloadingDataFinishedS, LoadedDataSuccessS] on ReloadDataE',
+        'emits [ReloadingDataS, LoadedDataSuccessS] on ReloadDataE',
         build: () => bloc,
         seed: () => const LoadedDataSuccessS<int, String>(0, params: 'test'),
         act: (bloc) => bloc.add(
@@ -112,9 +112,6 @@ void main() {
               .having((s) => s.isNextLoading, 'isNextLoading', false)
               .having((s) => s.data, 'data', 0)
               .having((s) => s.params, 'params', 'test'),
-          isA<ReloadingDataFinishedS<int, String>>()
-              .having((s) => s.data, 'data', 1)
-              .having((s) => s.params, 'params', 'test2'),
           isA<LoadedDataSuccessS<int, String>>()
               .having((s) => s.data, 'data', 1)
               .having((s) => s.params, 'params', 'test2'),

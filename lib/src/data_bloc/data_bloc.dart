@@ -68,12 +68,7 @@ void _$onLoadingError<Data, Params>(
   Emitter<DataS<Data>> emit, {
   Params? params,
 }) {
-  emit(
-    LoadingDataErrorS(
-      error,
-      params: params,
-    ),
-  );
+  emit(LoadingDataErrorS(error, params: params));
   emit(const UnloadedDataS());
 }
 
@@ -112,11 +107,11 @@ abstract class InternalDataBloc<Data, Params>
     OnLoadingError<Data, Params>? overridedOnLoadingError,
     OnReloading<Data, Params>? overridedOnReloading,
     OnReloadingError<Data, Params>? overridedOnReloadingError,
-  })  : onLoading = overridedOnLoading ?? _$onLoading,
-        onLoaded = overridedOnLoaded ?? _$onLoaded,
-        onLoadingError = overridedOnLoadingError ?? _$onLoadingError,
-        onReloading = overridedOnReloading ?? _$onReloading,
-        onReloadingError = overridedOnReloadingError ?? _$onReloadingError,
+  })  : _onLoading = overridedOnLoading ?? _$onLoading,
+        _onLoaded = overridedOnLoaded ?? _$onLoaded,
+        _onLoadingError = overridedOnLoadingError ?? _$onLoadingError,
+        _onReloading = overridedOnReloading ?? _$onReloading,
+        _onReloadingError = overridedOnReloadingError ?? _$onReloadingError,
         super(const UnloadedDataS()) {
     on<DataE<Params>>(
       _handleEvent,
@@ -124,11 +119,11 @@ abstract class InternalDataBloc<Data, Params>
     );
   }
 
-  final OnLoading<Data> onLoading;
-  final OnReloading<Data, Params> onReloading;
-  final OnLoaded<Data, Params> onLoaded;
-  final OnLoadingError<Data, Params> onLoadingError;
-  final OnReloadingError<Data, Params> onReloadingError;
+  final OnLoading<Data> _onLoading;
+  final OnReloading<Data, Params> _onReloading;
+  final OnLoaded<Data, Params> _onLoaded;
+  final OnLoadingError<Data, Params> _onLoadingError;
+  final OnReloadingError<Data, Params> _onReloadingError;
 
   @protected
   FutureOr<Data> loadData(DataS<Data> oldState, LoadDataE<Params> event);
@@ -163,19 +158,19 @@ abstract class InternalDataBloc<Data, Params>
       return;
     }
     try {
-      onLoading(emit);
+      _onLoading(emit);
       final data = await loadData(oldState, event);
 
-      onLoaded(emit, data, params: params);
+      _onLoaded(emit, data, params: params);
     } on DataException catch (error) {
-      onLoadingError(
+      _onLoadingError(
         error,
         oldState,
         emit,
         params: params,
       );
     } on Object catch (error, stackTrace) {
-      onLoadingError(
+      _onLoadingError(
         UnhandledDataException(error: error, stackTrace: stackTrace),
         oldState,
         emit,
@@ -194,23 +189,23 @@ abstract class InternalDataBloc<Data, Params>
       return;
     }
     try {
-      onReloading(
+      _onReloading(
         emit,
         oldState,
         event,
         params: params,
       );
       final data = await loadData(oldState, event);
-      onLoaded(emit, data, params: params);
+      _onLoaded(emit, data, params: params);
     } on DataException catch (error) {
-      onReloadingError(
+      _onReloadingError(
         error,
         oldState,
         emit,
         params: params,
       );
     } on Object catch (error, stackTrace) {
-      onReloadingError(
+      _onReloadingError(
         UnhandledDataException(error: error, stackTrace: stackTrace),
         oldState,
         emit,
@@ -227,7 +222,7 @@ abstract class InternalDataBloc<Data, Params>
     final params = event.params;
     if (oldState is LoadedS<Data, Params>) {
       try {
-        onLoaded(
+        _onLoaded(
           emit,
           event.update(
             oldState.data,
@@ -235,7 +230,7 @@ abstract class InternalDataBloc<Data, Params>
           params: params ?? oldState.params,
         );
       } on Object catch (error, stackTrace) {
-        onReloadingError(
+        _onReloadingError(
           UnhandledDataException(error: error, stackTrace: stackTrace),
           oldState,
           emit,
@@ -250,7 +245,7 @@ abstract class InternalDataBloc<Data, Params>
     Emitter<DataS<Data>> emit,
   ) {
     if (state is UnloadedDataS<Data>) {
-      onLoaded(
+      _onLoaded(
         emit,
         event.data,
         params: event.params,

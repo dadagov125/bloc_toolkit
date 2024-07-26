@@ -32,8 +32,11 @@ class LoadedDataS<Data, Params> extends LoadedS<Data, Params>
 @immutable
 class ReloadingDataS<Data, Params> extends LoadedS<Data, Params>
     implements LoadingS<Data> {
-  ReloadingDataS(LoadedS<Data, Params> oldState, {required this.isNextLoading})
-      : super(oldState.data, params: oldState.params);
+  ReloadingDataS(
+    LoadedS<Data, Params> oldState, {
+    required this.isNextLoading,
+    Params? params,
+  }) : super(oldState.data, params: params);
 
   final bool isNextLoading;
 

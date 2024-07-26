@@ -37,15 +37,16 @@ typedef OnLoadingError<Data, Params> = void Function(
 typedef OnReloading<Data, Params> = void Function(
   Emitter<DataS<Data>> emit,
   LoadedS<Data, Params> oldState,
-  ReloadDataE<Params> event,
-);
+  ReloadDataE<Params> event, {
+  Params? params,
+});
 
 typedef OnReloadingError<Data, Params> = void Function(
   DataException error,
   LoadedS<Data, Params> state,
-  Emitter<DataS<Data>> emit,
+  Emitter<DataS<Data>> emit, {
   Params? params,
-);
+});
 
 //----- Top lvl Functions
 
@@ -79,12 +80,14 @@ void _$onLoadingError<Data, Params>(
 void _$onReloading<Data, Params>(
   Emitter<DataS<Data>> emit,
   LoadedS<Data, Params> oldState,
-  ReloadDataE<Params> event,
-) {
+  ReloadDataE<Params> event, {
+  Params? params,
+}) {
   emit(
     ReloadingDataS(
       oldState,
       isNextLoading: event.isNextLoading,
+      params: params,
     ),
   );
 }
@@ -92,9 +95,9 @@ void _$onReloading<Data, Params>(
 void _$onReloadingError<Data, Params>(
   DataException error,
   LoadedS<Data, Params> state,
-  Emitter<DataS<Data>> emit,
+  Emitter<DataS<Data>> emit, {
   Params? params,
-) {
+}) {
   emit(ReloadingDataErrorS(state, error, params: params));
   emit(LoadedDataS(state.data, params: state.params));
 }
@@ -191,7 +194,12 @@ abstract class InternalDataBloc<Data, Params>
       return;
     }
     try {
-      onReloading(emit, oldState, event);
+      onReloading(
+        emit,
+        oldState,
+        event,
+        params: params,
+      );
       final data = await loadData(oldState, event);
       onLoaded(emit, data, params: params);
     } on DataException catch (error) {
@@ -199,14 +207,14 @@ abstract class InternalDataBloc<Data, Params>
         error,
         oldState,
         emit,
-        params,
+        params: params,
       );
     } on Object catch (error, stackTrace) {
       onReloadingError(
         UnhandledDataException(error: error, stackTrace: stackTrace),
         oldState,
         emit,
-        params,
+        params: params,
       );
     }
   }
@@ -231,7 +239,7 @@ abstract class InternalDataBloc<Data, Params>
           UnhandledDataException(error: error, stackTrace: stackTrace),
           oldState,
           emit,
-          params,
+          params: params,
         );
       }
     }

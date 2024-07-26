@@ -114,7 +114,7 @@ void main() {
           isA<ReloadingDataS<int, String>>()
               .having((s) => s.isNextLoading, 'isNextLoading', true)
               .having((s) => s.data, 'data', 0)
-              .having((s) => s.params, 'params', 'test'),
+              .having((s) => s.params, 'params', 'test2'),
           isA<LoadedDataS<int, String>>()
               .having((s) => s.data, 'data', 1)
               .having((s) => s.params, 'params', 'test2'),
@@ -135,7 +135,7 @@ void main() {
           isA<ReloadingDataS<int, String>>()
               .having((s) => s.isNextLoading, 'isNextLoading', true)
               .having((s) => s.data, 'data', 0)
-              .having((s) => s.params, 'params', 'test1'),
+              .having((s) => s.params, 'params', 'test2'),
           isA<ReloadingDataErrorS<int, String>>()
               .having((s) => s.data, 'data', 0)
               .having((s) => s.params, 'params', 'test2')
@@ -160,7 +160,7 @@ void main() {
           isA<ReloadingDataS<int, String>>()
               .having((s) => s.isNextLoading, 'isNextLoading', true)
               .having((s) => s.data, 'data', 0)
-              .having((s) => s.params, 'params', 'test1'),
+              .having((s) => s.params, 'params', 'test2'),
           isA<ReloadingDataErrorS<int, String>>()
               .having((s) => s.data, 'data', 0)
               .having((s) => s.params, 'params', 'test2')

@@ -25,6 +25,14 @@ class MockDataException extends Mock implements DataException {}
 
 class MockDataRepository extends Mock implements DataRepository {}
 
+class MockDataS extends Mock implements DataS<int> {}
+
+class MockIdleS extends Mock implements IdleS<int> {}
+
+class MockLoadingS extends Mock implements LoadingS<int> {}
+
+class MockErrorS extends Mock implements ErrorS<int> {}
+
 void main() {
   group('DataBloc', () {
     late TestInternalDataBloc bloc;
@@ -236,6 +244,348 @@ void main() {
               .having((s) => s.params, 'params', 'test1'),
         ],
       );
+    });
+
+    //-----data
+    group('union -> dataMap', () {
+      DataS<int> getStateFromDataMap(DataS<int> state) {
+        return dataMap<DataS<int>, int>(
+          state,
+          idle: (s) => s,
+          loading: (s) => s,
+          error: (s) => s,
+        );
+      }
+
+      test('[LoadedDataS]  is [IdleS] on dataMap ', () {
+        final state = getStateFromDataMap(LoadedDataS(0, params: null));
+        expect(state, isA<IdleS<int>>());
+      });
+
+      test('[UnloadedDataS] is [IdleS] on dataMap ', () {
+        final state = getStateFromDataMap(UnloadedDataS());
+        expect(state, isA<IdleS<int>>());
+      });
+
+      test('[LoadingDataS]  is [LoadingS] on dataMap ', () {
+        final state = getStateFromDataMap(LoadingDataS());
+        expect(state, isA<LoadingS<int>>());
+      });
+
+      test('[ReloadingDataS] is [LoadingS] on dataMap ', () {
+        final state = getStateFromDataMap(
+            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+        expect(state, isA<LoadingS<int>>());
+      });
+
+      test('[LoadingDataErrorS]  is [ErrorS] on dataMap ', () {
+        final state =
+            getStateFromDataMap(LoadingDataErrorS(MockDataException()));
+        expect(state, isA<ErrorS<int>>());
+      });
+
+      test('[ReloadingDataErrorS] is [ErrorS] on dataMap ', () {
+        final state = getStateFromDataMap(
+            ReloadingDataErrorS(LoadedDataS(0), MockDataException()));
+        expect(state, isA<ErrorS<int>>());
+      });
+    });
+
+    group('union -> dataMaybeMap', () {
+      DataS<int> getStateFromDataMaybeMap(DataS<int> state) {
+        return dataMaybeMap<DataS<int>, int>(
+          state,
+          idle: (s) => s,
+          loading: (s) => s,
+          error: (s) => s,
+          orElse: () => throw Exception('Unknown type'),
+        );
+      }
+
+      test('[LoadedDataS]  is [IdleS] on dataMaybeMap ', () {
+        final state = getStateFromDataMaybeMap(LoadedDataS(0, params: null));
+        expect(state, isA<IdleS<int>>());
+      });
+
+      test('[UnloadedDataS] is [IdleS] on dataMaybeMap ', () {
+        final state = getStateFromDataMaybeMap(UnloadedDataS());
+        expect(state, isA<IdleS<int>>());
+      });
+
+      test('[LoadingDataS]  is [LoadingS] on dataMaybeMap ', () {
+        final state = getStateFromDataMaybeMap(LoadingDataS());
+        expect(state, isA<LoadingS<int>>());
+      });
+
+      test('[ReloadingDataS] is [LoadingS] on dataMaybeMap ', () {
+        final state = getStateFromDataMaybeMap(
+            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+        expect(state, isA<LoadingS<int>>());
+      });
+
+      test('[LoadingDataErrorS]  is [ErrorS] on dataMaybeMap ', () {
+        final state =
+            getStateFromDataMaybeMap(LoadingDataErrorS(MockDataException()));
+        expect(state, isA<ErrorS<int>>());
+      });
+
+      test('[ReloadingDataErrorS] is [ErrorS] on dataMaybeMap ', () {
+        final state = getStateFromDataMaybeMap(
+            ReloadingDataErrorS(LoadedDataS(0), MockDataException()));
+        expect(state, isA<ErrorS<int>>());
+      });
+
+      test('throws exception on unknown type', () {
+        expect(
+          () => getStateFromDataMaybeMap(MockDataS()),
+          throwsException,
+        );
+      });
+    });
+
+    group('union -> dataMapOrNull', () {
+      DataS<int>? getStateFromDataMapOrNull(DataS<int> state) {
+        return dataMapOrNull<DataS<int>, int>(
+          state,
+          idle: (s) => s,
+          loading: (s) => s,
+          error: (s) => s,
+        );
+      }
+
+      test('[LoadedDataS]  is [IdleS] on dataMapOrNull ', () {
+        final state = getStateFromDataMapOrNull(LoadedDataS(0, params: null));
+        expect(state, isA<IdleS<int>>());
+      });
+
+      test('[UnloadedDataS] is [IdleS] on dataMapOrNull ', () {
+        final state = getStateFromDataMapOrNull(UnloadedDataS());
+        expect(state, isA<IdleS<int>>());
+      });
+
+      test('[LoadingDataS]  is [LoadingS] on dataMapOrNull ', () {
+        final state = getStateFromDataMapOrNull(LoadingDataS());
+        expect(state, isA<LoadingS<int>>());
+      });
+
+      test('[ReloadingDataS] is [LoadingS] on dataMapOrNull ', () {
+        final state = getStateFromDataMapOrNull(
+            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+        expect(state, isA<LoadingS<int>>());
+      });
+
+      test('[LoadingDataErrorS]  is [ErrorS] on dataMapOrNull ', () {
+        final state =
+            getStateFromDataMapOrNull(LoadingDataErrorS(MockDataException()));
+        expect(state, isA<ErrorS<int>>());
+      });
+
+      test('[ReloadingDataErrorS] is [ErrorS] on dataMapOrNull ', () {
+        final state = getStateFromDataMapOrNull(
+            ReloadingDataErrorS(LoadedDataS(0), MockDataException()));
+        expect(state, isA<ErrorS<int>>());
+      });
+
+      test('returns null on unknown type', () {
+        final state = getStateFromDataMapOrNull(MockDataS());
+        expect(state, isNull);
+      });
+    });
+
+    //----- Idle
+    group('union -> idleMap', () {
+      IdleS<int> getStateFromIdleMap(IdleS<int> state) {
+        return idleMap<IdleS<int>, int, void>(
+          state,
+          loaded: (s) => s,
+          unloaded: (s) => s,
+        );
+      }
+
+      test('[LoadedDataS]  is [LoadedDataS] on idleMap ', () {
+        final state = getStateFromIdleMap(LoadedDataS(0, params: null));
+        expect(state, isA<LoadedDataS<int, void>>());
+      });
+
+      test('[UnloadedDataS] is [UnloadedDataS] on idleMap ', () {
+        final state = getStateFromIdleMap(UnloadedDataS());
+        expect(state, isA<UnloadedDataS<int>>());
+      });
+
+      test('throws exception on unknown type', () {
+        expect(
+          () => getStateFromIdleMap(MockIdleS()),
+          throwsException,
+        );
+      });
+    });
+
+    group('union -> idleMaybeMap', () {
+      IdleS<int> getStateFromIdleMaybeMap(IdleS<int> state) {
+        return idleMaybeMap<IdleS<int>, int, void>(
+          state,
+          loaded: (s) => s,
+          unloaded: (s) => s,
+          orElse: () => throw Exception('Unknown type'),
+        );
+      }
+
+      test('[LoadedDataS]  is [LoadedDataS] on idleMaybeMap ', () {
+        final state = getStateFromIdleMaybeMap(LoadedDataS(0, params: null));
+        expect(state, isA<LoadedDataS<int, void>>());
+      });
+
+      test('[UnloadedDataS] is [UnloadedDataS] on idleMaybeMap ', () {
+        final state = getStateFromIdleMaybeMap(UnloadedDataS());
+        expect(state, isA<UnloadedDataS<int>>());
+      });
+
+      test('throws exception on unknown type', () {
+        expect(
+          () => getStateFromIdleMaybeMap(MockIdleS()),
+          throwsException,
+        );
+      });
+    });
+
+    group('union -> idleMapOrNull', () {
+      IdleS<int>? getStateFromIdleMapOrNull(IdleS<int> state) {
+        return idleMapOrNull<IdleS<int>, int, void>(
+          state,
+          loaded: (s) => s,
+          unloaded: (s) => s,
+        );
+      }
+
+      test('[LoadedDataS]  is [LoadedDataS] on idleMapOrNull ', () {
+        final state = getStateFromIdleMapOrNull(LoadedDataS(0, params: null));
+        expect(state, isA<LoadedDataS<int, void>>());
+      });
+
+      test('[UnloadedDataS] is [UnloadedDataS] on idleMapOrNull ', () {
+        final state = getStateFromIdleMapOrNull(UnloadedDataS());
+        expect(state, isA<UnloadedDataS<int>>());
+      });
+
+      test('returns null on unknown type', () {
+        final state = getStateFromIdleMapOrNull(MockIdleS());
+        expect(state, isNull);
+      });
+    });
+
+    //------- Loading
+
+    group('union -> loadingMap', () {
+      LoadingS<int> getStateFromLoadingMap(LoadingS<int> state) {
+        return loadingMap<LoadingS<int>, int, void>(
+          state,
+          reloading: (s) => s,
+          loading: (s) => s,
+        );
+      }
+
+      test('[ReloadingDataS]  is [ReloadingDataS] on loadingMap ', () {
+        final state = getStateFromLoadingMap(
+            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+        expect(state, isA<ReloadingDataS<int, void>>());
+      });
+
+      test('[LoadingDataS] is [LoadingDataS] on loadingMap ', () {
+        final state = getStateFromLoadingMap(LoadingDataS());
+        expect(state, isA<LoadingDataS<int>>());
+      });
+
+      test('throws exception on unknown type', () {
+        expect(
+          () => getStateFromLoadingMap(MockLoadingS()),
+          throwsException,
+        );
+      });
+    });
+
+    group('union -> loadingMaybeMap', () {
+      LoadingS<int> getStateFromLoadingMaybeMap(LoadingS<int> state) {
+        return loadingMaybeMap<LoadingS<int>, int, void>(
+          state,
+          reloading: (s) => s,
+          loading: (s) => s,
+          orElse: () => throw Exception('Unknown type'),
+        );
+      }
+
+      test('[ReloadingDataS]  is [ReloadingDataS] on loadingMaybeMap ', () {
+        final state = getStateFromLoadingMaybeMap(
+            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+        expect(state, isA<ReloadingDataS<int, void>>());
+      });
+
+      test('[LoadingDataS] is [LoadingDataS] on loadingMaybeMap ', () {
+        final state = getStateFromLoadingMaybeMap(LoadingDataS());
+        expect(state, isA<LoadingDataS<int>>());
+      });
+
+      test('throws exception on unknown type', () {
+        expect(
+          () => getStateFromLoadingMaybeMap(MockLoadingS()),
+          throwsException,
+        );
+      });
+    });
+
+    group('union -> loadingMapOrNull', () {
+      LoadingS<int>? getStateFromLoadingMapOrNull(LoadingS<int> state) {
+        return loadingMapOrNull<LoadingS<int>, int, void>(
+          state,
+          reloading: (s) => s,
+          loading: (s) => s,
+        );
+      }
+
+      test('[ReloadingDataS]  is [ReloadingDataS] on loadingMapOrNull ', () {
+        final state = getStateFromLoadingMapOrNull(
+            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+        expect(state, isA<ReloadingDataS<int, void>>());
+      });
+
+      test('[LoadingDataS] is [LoadingDataS] on loadingMapOrNull ', () {
+        final state = getStateFromLoadingMapOrNull(LoadingDataS());
+        expect(state, isA<LoadingDataS<int>>());
+      });
+
+      test('returns null on unknown type', () {
+        final state = getStateFromLoadingMapOrNull(MockLoadingS());
+        expect(state, isNull);
+      });
+    });
+
+    //----- Error
+    group('union -> errorMap', () {
+      ErrorS<int> getStateFromErrorMap(ErrorS<int> state) {
+        return errorMap<ErrorS<int>, int, void>(
+          state,
+          loadingError: (s) => s,
+          reloadingError: (s) => s,
+        );
+      }
+
+      test('[LoadingDataErrorS]  is [LoadingDataErrorS] on errorMap ', () {
+        final state =
+            getStateFromErrorMap(LoadingDataErrorS(MockDataException()));
+        expect(state, isA<LoadingDataErrorS<int, void>>());
+      });
+
+      test('[ReloadingDataErrorS] is [ReloadingDataErrorS] on errorMap ', () {
+        final state = getStateFromErrorMap(
+            ReloadingDataErrorS(LoadedDataS(0), MockDataException()));
+        expect(state, isA<ReloadingDataErrorS<int, void>>());
+      });
+
+      test('throws exception on unknown type', () {
+        expect(
+          () => getStateFromErrorMap(MockErrorS()),
+          throwsException,
+        );
+      });
     });
   });
 }

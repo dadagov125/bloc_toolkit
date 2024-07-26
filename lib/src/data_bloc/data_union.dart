@@ -18,8 +18,8 @@ R? dataMapOrNull<R, Data>(
   }
 }
 
-R dataMaybeMap<R, Data>({
-  required DataS<Data> state,
+R dataMaybeMap<R, Data>(
+  DataS<Data> state, {
   required R Function(IdleS<Data>) idle,
   required R Function(LoadingS<Data>) loading,
   required R Function(ErrorS<Data>) error,
@@ -36,8 +36,8 @@ R dataMaybeMap<R, Data>({
   }
 }
 
-R dataMap<R, Data>({
-  required DataS<Data> state,
+R dataMap<R, Data>(
+  DataS<Data> state, {
   required R Function(IdleS<Data>) idle,
   required R Function(LoadingS<Data>) loading,
   required R Function(ErrorS<Data>) error,
@@ -69,8 +69,8 @@ R? idleMapOrNull<R, Data, Params>(
   }
 }
 
-R idleMaybeMap<R, Data, Params>({
-  required IdleS<Data> state,
+R idleMaybeMap<R, Data, Params>(
+  IdleS<Data> state, {
   required R Function(LoadedDataS<Data, Params>) loaded,
   required R Function(UnloadedDataS<Data>) unloaded,
   required R Function() orElse,
@@ -84,8 +84,8 @@ R idleMaybeMap<R, Data, Params>({
   }
 }
 
-R idleMap<R, Data, Params>({
-  required IdleS<Data> state,
+R idleMap<R, Data, Params>(
+  IdleS<Data> state, {
   required R Function(LoadedDataS<Data, Params>) loaded,
   required R Function(UnloadedDataS<Data>) unloaded,
 }) {
@@ -114,8 +114,8 @@ R? loadingMapOrNull<R, Data, Params>(
   }
 }
 
-R loadingMaybeMap<R, Data, Params>({
-  required LoadingS<Data> state,
+R loadingMaybeMap<R, Data, Params>(
+  LoadingS<Data> state, {
   required R Function(ReloadingDataS<Data, Params>) reloading,
   required R Function(LoadingDataS<Data>) loading,
   required R Function() orElse,
@@ -129,8 +129,8 @@ R loadingMaybeMap<R, Data, Params>({
   }
 }
 
-R loadingMap<R, Data, Params>({
-  required LoadingS<Data> state,
+R loadingMap<R, Data, Params>(
+  LoadingS<Data> state, {
   required R Function(ReloadingDataS<Data, Params>) reloading,
   required R Function(LoadingDataS<Data>) loading,
 }) {
@@ -159,8 +159,8 @@ R? errorMapOrNull<R, Data, Params>(
   }
 }
 
-R errorMaybeMap<R, Data, Params>({
-  required ErrorS<Data> state,
+R errorMaybeMap<R, Data, Params>(
+  ErrorS<Data> state, {
   required R Function(ReloadingDataErrorS<Data, Params>) reloadingError,
   required R Function(LoadingDataErrorS<Data, Params>) loadingError,
   required R Function() orElse,
@@ -174,8 +174,8 @@ R errorMaybeMap<R, Data, Params>({
   }
 }
 
-R errorMap<R, Data, Params>({
-  required ErrorS<Data> state,
+R errorMap<R, Data, Params>(
+  ErrorS<Data> state, {
   required R Function(ReloadingDataErrorS<Data, Params>) reloadingError,
   required R Function(LoadingDataErrorS<Data, Params>) loadingError,
 }) {

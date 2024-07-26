@@ -55,8 +55,9 @@ class ReloadingDataErrorS<Data, Params> extends LoadedS<Data, Params>
     implements ErrorS<Data> {
   ReloadingDataErrorS(
     LoadedS<Data, Params> oldState,
-    this.error,
-  ) : super(oldState.data, params: oldState.params);
+    this.error, {
+    Params? params,
+  }) : super(oldState.data, params: params);
 
   @override
   final DataException error;

@@ -44,6 +44,7 @@ typedef OnReloadingError<Data, Params> = void Function(
   DataException error,
   LoadedS<Data, Params> state,
   Emitter<DataS<Data>> emit,
+  Params? params,
 );
 
 //----- Top lvl Functions
@@ -92,8 +93,9 @@ void _$onReloadingError<Data, Params>(
   DataException error,
   LoadedS<Data, Params> state,
   Emitter<DataS<Data>> emit,
+  Params? params,
 ) {
-  emit(ReloadingDataErrorS(state, error));
+  emit(ReloadingDataErrorS(state, error, params: params));
   emit(LoadedDataS(state.data, params: state.params));
 }
 
@@ -193,12 +195,18 @@ abstract class InternalDataBloc<Data, Params>
       final data = await loadData(oldState, event);
       onLoaded(emit, data, params: params);
     } on DataException catch (error) {
-      onReloadingError(error, oldState, emit);
+      onReloadingError(
+        error,
+        oldState,
+        emit,
+        params,
+      );
     } on Object catch (error, stackTrace) {
       onReloadingError(
         UnhandledDataException(error: error, stackTrace: stackTrace),
         oldState,
         emit,
+        params,
       );
     }
   }
@@ -208,6 +216,7 @@ abstract class InternalDataBloc<Data, Params>
     Emitter<DataS<Data>> emit,
   ) {
     final oldState = state;
+    final params = event.params;
     if (oldState is LoadedS<Data, Params>) {
       try {
         onLoaded(
@@ -215,13 +224,14 @@ abstract class InternalDataBloc<Data, Params>
           event.update(
             oldState.data,
           ),
-          params: event.params ?? oldState.params,
+          params: params ?? oldState.params,
         );
       } on Object catch (error, stackTrace) {
         onReloadingError(
           UnhandledDataException(error: error, stackTrace: stackTrace),
           oldState,
           emit,
+          params,
         );
       }
     }

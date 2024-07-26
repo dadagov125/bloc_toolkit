@@ -138,8 +138,7 @@ void main() {
               .having((s) => s.params, 'params', 'test1'),
           isA<ReloadingDataErrorS<int, String>>()
               .having((s) => s.data, 'data', 0)
-              //TODO: it might be worth passing parameters from the event to resend the event?
-              .having((s) => s.params, 'params', 'test1')
+              .having((s) => s.params, 'params', 'test2')
               .having((s) => s.error, 'error', isA<DataException>()),
           isA<LoadedDataS<int, String>>()
               .having((s) => s.data, 'data', 0)
@@ -164,8 +163,7 @@ void main() {
               .having((s) => s.params, 'params', 'test1'),
           isA<ReloadingDataErrorS<int, String>>()
               .having((s) => s.data, 'data', 0)
-              //TODO: it might be worth passing parameters from the event to resend the event?
-              .having((s) => s.params, 'params', 'test1')
+              .having((s) => s.params, 'params', 'test2')
               .having((s) => s.error, 'error', isA<DataException>()),
           isA<LoadedDataS<int, String>>()
               .having((s) => s.data, 'data', 0)
@@ -210,8 +208,7 @@ void main() {
         expect: () => [
           isA<ReloadingDataErrorS<int, String>>()
               .having((s) => s.data, 'data', 0)
-              //TODO: it might be worth passing parameters from the event to resend the event?
-              .having((s) => s.params, 'params', 'test1')
+              .having((s) => s.params, 'params', 'test2')
               .having((s) => s.error, 'error', isA<DataException>()),
           isA<LoadedDataS<int, String>>()
               .having((s) => s.data, 'data', 0)

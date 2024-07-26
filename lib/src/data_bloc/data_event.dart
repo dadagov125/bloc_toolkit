@@ -1,5 +1,6 @@
 part of 'data_bloc.dart';
 
+@immutable
 abstract class DataE<Params> {
   const DataE({this.params});
 
@@ -16,6 +17,7 @@ abstract class DataE<Params> {
   int get hashCode => params.hashCode;
 }
 
+@immutable
 class LoadDataE<Params> extends DataE<Params> {
   const LoadDataE({Params? params}) : super(params: params);
 }
@@ -38,6 +40,7 @@ class ReloadDataE<Params> extends LoadDataE<Params> {
   int get hashCode => isNextLoading.hashCode;
 }
 
+@immutable
 class UpdateDataE<Data, Params> extends DataE<Params> {
   const UpdateDataE(this.update, {Params? params}) : super(params: params);
 

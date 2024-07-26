@@ -14,10 +14,14 @@ part 'data_loaded_state.dart';
 
 part 'data_unloaded_state.dart';
 
+part 'data_extension.dart';
+
+part 'data_union.dart';
+
 //------ types
 typedef OnLoading<Data> = void Function(Emitter<DataS<Data>> emit);
 
-typedef OnLoadingSuccess<Data, Params> = void Function(
+typedef OnLoaded<Data, Params> = void Function(
   Emitter<DataS<Data>> emit,
   Data data, {
   Params? params,
@@ -32,29 +36,28 @@ typedef OnLoadingError<Data, Params> = void Function(
 
 typedef OnReloading<Data, Params> = void Function(
   Emitter<DataS<Data>> emit,
-  LoadedDataS<Data, Params> oldState,
+  LoadedS<Data, Params> oldState,
   ReloadDataE<Params> event,
 );
 
-
 typedef OnReloadingError<Data, Params> = void Function(
   DataException error,
-  LoadedDataS<Data, Params> state,
+  LoadedS<Data, Params> state,
   Emitter<DataS<Data>> emit,
 );
 
-//----- Functions
+//----- Top lvl Functions
 
 void _$onLoading<Data>(Emitter<DataS<Data>> emit) {
   emit(const LoadingDataS());
 }
 
-void _$onLoadingSuccess<Data, Params>(
+void _$onLoaded<Data, Params>(
   Emitter<DataS<Data>> emit,
   Data data, {
   Params? params,
 }) {
-  emit(LoadedDataSuccessS(data, params: params));
+  emit(LoadedDataS(data, params: params));
 }
 
 void _$onLoadingError<Data, Params>(
@@ -69,11 +72,12 @@ void _$onLoadingError<Data, Params>(
       params: params,
     ),
   );
+  emit(const UnloadedDataS());
 }
 
 void _$onReloading<Data, Params>(
   Emitter<DataS<Data>> emit,
-  LoadedDataS<Data, Params> oldState,
+  LoadedS<Data, Params> oldState,
   ReloadDataE<Params> event,
 ) {
   emit(
@@ -84,14 +88,13 @@ void _$onReloading<Data, Params>(
   );
 }
 
-
 void _$onReloadingError<Data, Params>(
   DataException error,
-  LoadedDataS<Data, Params> state,
+  LoadedS<Data, Params> state,
   Emitter<DataS<Data>> emit,
 ) {
-  emit(ReloadingErrorS(state, error));
-  emit(LoadedDataSuccessS(state.data, params: state.params));
+  emit(ReloadingDataErrorS(state, error));
+  emit(LoadedDataS(state.data, params: state.params));
 }
 
 //----- Internal bloc
@@ -100,12 +103,12 @@ abstract class InternalDataBloc<Data, Params>
   InternalDataBloc({
     EventTransformer<DataE<Params>>? transformer,
     OnLoading<Data>? overridedOnLoading,
-    OnLoadingSuccess<Data, Params>? overridedOnLoadingSuccess,
+    OnLoaded<Data, Params>? overridedOnLoaded,
     OnLoadingError<Data, Params>? overridedOnLoadingError,
     OnReloading<Data, Params>? overridedOnReloading,
     OnReloadingError<Data, Params>? overridedOnReloadingError,
   })  : onLoading = overridedOnLoading ?? _$onLoading,
-        onLoadingSuccess = overridedOnLoadingSuccess ?? _$onLoadingSuccess,
+        onLoaded = overridedOnLoaded ?? _$onLoaded,
         onLoadingError = overridedOnLoadingError ?? _$onLoadingError,
         onReloading = overridedOnReloading ?? _$onReloading,
         onReloadingError = overridedOnReloadingError ?? _$onReloadingError,
@@ -118,7 +121,7 @@ abstract class InternalDataBloc<Data, Params>
 
   final OnLoading<Data> onLoading;
   final OnReloading<Data, Params> onReloading;
-  final OnLoadingSuccess<Data, Params> onLoadingSuccess;
+  final OnLoaded<Data, Params> onLoaded;
   final OnLoadingError<Data, Params> onLoadingError;
   final OnReloadingError<Data, Params> onReloadingError;
 
@@ -158,7 +161,7 @@ abstract class InternalDataBloc<Data, Params>
       onLoading(emit);
       final data = await loadData(oldState, event);
 
-      onLoadingSuccess(emit, data, params: params);
+      onLoaded(emit, data, params: params);
     } on DataException catch (error) {
       onLoadingError(
         error,
@@ -182,13 +185,13 @@ abstract class InternalDataBloc<Data, Params>
   ) async {
     final oldState = state;
     final params = event.params;
-    if (oldState is! LoadedDataS<Data, Params>) {
+    if (oldState is! LoadedS<Data, Params>) {
       return;
     }
     try {
       onReloading(emit, oldState, event);
       final data = await loadData(oldState, event);
-      onLoadingSuccess(emit, data, params: params);
+      onLoaded(emit, data, params: params);
     } on DataException catch (error) {
       onReloadingError(error, oldState, emit);
     } on Object catch (error, stackTrace) {
@@ -205,9 +208,9 @@ abstract class InternalDataBloc<Data, Params>
     Emitter<DataS<Data>> emit,
   ) {
     final oldState = state;
-    if (oldState is LoadedDataS<Data, Params>) {
+    if (oldState is LoadedS<Data, Params>) {
       try {
-        onLoadingSuccess(
+        onLoaded(
           emit,
           event.update(
             oldState.data,
@@ -229,7 +232,7 @@ abstract class InternalDataBloc<Data, Params>
     Emitter<DataS<Data>> emit,
   ) {
     if (state is UnloadedDataS<Data>) {
-      onLoadingSuccess(
+      onLoaded(
         emit,
         event.data,
         params: event.params,

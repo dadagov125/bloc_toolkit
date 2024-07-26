@@ -2,20 +2,27 @@ part of 'data_bloc.dart';
 
 // ----- Unloaded
 
+@immutable
+abstract class UnloadedS<Data> extends DataS<Data> {
+  const UnloadedS();
+}
+
 /// Idle
-class UnloadedDataS<Data> extends DataS<Data> {
+@immutable
+class UnloadedDataS<Data> extends UnloadedS<Data> implements IdleS<Data> {
   const UnloadedDataS();
 }
 
-/// Progress
-class LoadingDataS<Data> extends UnloadedDataS<Data> implements Progress<Data> {
+/// Loading
+@immutable
+class LoadingDataS<Data> extends UnloadedS<Data> implements LoadingS<Data> {
   const LoadingDataS();
 }
 
-/// Error&Finished
+/// Error
 @immutable
-class LoadingDataErrorS<Data, Params> extends UnloadedDataS<Data>
-    implements ProgressError<Data> {
+class LoadingDataErrorS<Data, Params> extends UnloadedS<Data>
+    implements ErrorS<Data> {
   const LoadingDataErrorS(this.error, {this.params});
 
   @override
@@ -27,9 +34,8 @@ class LoadingDataErrorS<Data, Params> extends UnloadedDataS<Data>
       identical(this, other) ||
       other is LoadingDataErrorS &&
           runtimeType == other.runtimeType &&
-          error == other.error &&
-          params == other.params;
+          error == other.error;
 
   @override
-  int get hashCode => error.hashCode ^ params.hashCode;
+  int get hashCode => error.hashCode;
 }

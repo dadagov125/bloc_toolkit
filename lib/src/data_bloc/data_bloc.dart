@@ -220,7 +220,7 @@ abstract class InternalDataBloc<Data, Params>
   ) {
     final oldState = state;
     final params = event.params;
-    if (oldState is LoadedS<Data, Params>) {
+    if (oldState is LoadedDataS<Data, Params>) {
       try {
         _onLoaded(
           emit,

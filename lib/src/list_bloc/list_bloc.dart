@@ -47,7 +47,7 @@ class ApplyParamsE<T> extends UpdateDataE<List<T>, ListParams<T>> {
   ApplyParamsE(ListParams<T> params) : super((data) => data, params: params);
 }
 
-abstract class ListBloc<T> extends InternalDataBloc<List<T>, ListParams<T>> {
+class ListBloc<T> extends InternalDataBloc<List<T>, ListParams<T>> {
   ListBloc({
     List<T>? initialList,
     ListParams<T>? initialParams,

@@ -54,7 +54,9 @@ class TestListBloc extends ListBloc<int> {
 
   @override
   FutureOr<List<int>> loadData(
-      DataS<List<int>> oldState, LoadDataE<ListParams<int>> event) {
+    DataS<List<int>> oldState,
+    LoadDataE<ListParams<int>> event,
+  ) {
     return repository.loadData();
   }
 }
@@ -318,7 +320,8 @@ void main() {
 
       test('[ReloadingDataS] is [LoadingS] on dataMap ', () {
         final state = getStateFromDataMap(
-            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+          ReloadingDataS(LoadedDataS(0), isNextLoading: true),
+        );
         expect(state, isA<LoadingS<int>>());
       });
 
@@ -330,7 +333,8 @@ void main() {
 
       test('[ReloadingDataErrorS] is [ErrorS] on dataMap ', () {
         final state = getStateFromDataMap(
-            ReloadingDataErrorS(LoadedDataS(0), MockDataException()));
+          ReloadingDataErrorS(LoadedDataS(0), MockDataException()),
+        );
         expect(state, isA<ErrorS<int>>());
       });
     });
@@ -363,7 +367,8 @@ void main() {
 
       test('[ReloadingDataS] is [LoadingS] on dataMaybeMap ', () {
         final state = getStateFromDataMaybeMap(
-            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+          ReloadingDataS(LoadedDataS(0), isNextLoading: true),
+        );
         expect(state, isA<LoadingS<int>>());
       });
 
@@ -375,7 +380,8 @@ void main() {
 
       test('[ReloadingDataErrorS] is [ErrorS] on dataMaybeMap ', () {
         final state = getStateFromDataMaybeMap(
-            ReloadingDataErrorS(LoadedDataS(0), MockDataException()));
+          ReloadingDataErrorS(LoadedDataS(0), MockDataException()),
+        );
         expect(state, isA<ErrorS<int>>());
       });
 
@@ -414,7 +420,8 @@ void main() {
 
       test('[ReloadingDataS] is [LoadingS] on dataMapOrNull ', () {
         final state = getStateFromDataMapOrNull(
-            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+          ReloadingDataS(LoadedDataS(0), isNextLoading: true),
+        );
         expect(state, isA<LoadingS<int>>());
       });
 
@@ -426,7 +433,8 @@ void main() {
 
       test('[ReloadingDataErrorS] is [ErrorS] on dataMapOrNull ', () {
         final state = getStateFromDataMapOrNull(
-            ReloadingDataErrorS(LoadedDataS(0), MockDataException()));
+          ReloadingDataErrorS(LoadedDataS(0), MockDataException()),
+        );
         expect(state, isA<ErrorS<int>>());
       });
 
@@ -530,7 +538,8 @@ void main() {
 
       test('[ReloadingDataS]  is [ReloadingDataS] on loadingMap ', () {
         final state = getStateFromLoadingMap(
-            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+          ReloadingDataS(LoadedDataS(0), isNextLoading: true),
+        );
         expect(state, isA<ReloadingDataS<int, void>>());
       });
 
@@ -559,7 +568,8 @@ void main() {
 
       test('[ReloadingDataS]  is [ReloadingDataS] on loadingMaybeMap ', () {
         final state = getStateFromLoadingMaybeMap(
-            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+          ReloadingDataS(LoadedDataS(0), isNextLoading: true),
+        );
         expect(state, isA<ReloadingDataS<int, void>>());
       });
 
@@ -587,7 +597,8 @@ void main() {
 
       test('[ReloadingDataS]  is [ReloadingDataS] on loadingMapOrNull ', () {
         final state = getStateFromLoadingMapOrNull(
-            ReloadingDataS(LoadedDataS(0), isNextLoading: true));
+          ReloadingDataS(LoadedDataS(0), isNextLoading: true),
+        );
         expect(state, isA<ReloadingDataS<int, void>>());
       });
 
@@ -620,7 +631,8 @@ void main() {
 
       test('[ReloadingDataErrorS] is [ReloadingDataErrorS] on errorMap ', () {
         final state = getStateFromErrorMap(
-            ReloadingDataErrorS(LoadedDataS(0), MockDataException()));
+          ReloadingDataErrorS(LoadedDataS(0), MockDataException()),
+        );
         expect(state, isA<ReloadingDataErrorS<int, void>>());
       });
 
@@ -683,9 +695,11 @@ void main() {
     test(
         'initialState is [LoadedDataS] with [ListParams] and [initialList] is [filtered] when passed with [ListParams(IntFilterPredicate)]',
         () {
-      params = ListParams<int>(filters: [
-        IntFilterPredicate([1])
-      ]);
+      params = ListParams<int>(
+        filters: [
+          IntFilterPredicate([1]),
+        ],
+      );
       bloc = TestListBloc(
         repository: repository,
         initialList: unsortedList,
@@ -696,7 +710,10 @@ void main() {
         isA<LoadedDataS<List<int>, ListParams<int>>>()
             .having((s) => s.data.length, 'data.length', 1)
             .having((s) => s.data, 'data', [1]).having(
-                (s) => s.params, 'params', params),
+          (s) => s.params,
+          'params',
+          params,
+        ),
       );
     });
 
@@ -719,7 +736,10 @@ void main() {
         isA<LoadedDataS<List<int>, ListParams<int>>>()
             .having((s) => s.data.length, 'data.length', 5)
             .having((s) => s.data, 'data', [1, 2, 3, 4, 5]).having(
-                (s) => s.params, 'params', params),
+          (s) => s.params,
+          'params',
+          params,
+        ),
       );
     });
 
@@ -742,7 +762,10 @@ void main() {
         isA<LoadedDataS<List<int>, ListParams<int>>>()
             .having((s) => s.data.length, 'data.length', 5)
             .having((s) => s.data, 'data', [1, 2, 3, 4, 5]).having(
-                (s) => s.params, 'params', params),
+          (s) => s.params,
+          'params',
+          params,
+        ),
       ],
     );
 
@@ -759,9 +782,11 @@ void main() {
       },
       build: () => bloc,
       act: (bloc) async {
-        bloc.add(InitializeDataE(
-          unsortedList,
-        ));
+        bloc.add(
+          InitializeDataE(
+            unsortedList,
+          ),
+        );
         bloc.add(ApplyParamsE(params));
       },
       expect: () => [
@@ -771,7 +796,105 @@ void main() {
         isA<LoadedDataS<List<int>, ListParams<int>>>()
             .having((s) => s.data.length, 'data.length', 5)
             .having((s) => s.data, 'data', [1, 2, 3, 4, 5]).having(
-                (s) => s.params, 'params', params),
+          (s) => s.params,
+          'params',
+          params,
+        ),
+      ],
+    );
+  });
+
+  group(SelectBloc, () {
+    late SelectBloc<int> bloc;
+
+    test(
+        ' when initialize with [selected] state is [SelectedS] with [selected]',
+        () {
+      bloc = SelectBloc<int>(items: [1, 2, 3], selected: 1);
+      expect(
+        bloc.state,
+        isA<SelectedS<int>>()
+            .having((s) => s.items, 'items', [1, 2, 3])
+            .having((s) => s.selected, 'selected', 1)
+            .having(
+              (s) => s.items.contains(s.selected),
+              'items contains selected',
+              true,
+            ),
+      );
+    });
+
+    test(' when initialize without [selected] state is [SelectS]', () {
+      bloc = SelectBloc<int>(
+        items: [1, 2, 3],
+      );
+      expect(
+        bloc.state,
+        isA<SelectS<int>>().having((s) => s.items, 'items', [1, 2, 3]),
+      );
+    });
+
+    blocTest<SelectBloc<int>, SelectS<int>>(
+      'emits [SelectedS] on [SelectE] with [selected]',
+      setUp: () {
+        bloc = SelectBloc<int>(
+          items: [1, 2, 3],
+        );
+      },
+      build: () => bloc,
+      act: (bloc) {
+        bloc.add(SelectE(1));
+      },
+      expect: () => [
+        isA<SelectedS<int>>()
+            .having((s) => s.items, 'items', [1, 2, 3])
+            .having((s) => s.selected, 'selected', 1)
+            .having(
+              (s) => s.items.contains(s.selected),
+              'items contains selected',
+              true,
+            ),
+      ],
+    );
+
+    blocTest<SelectBloc<int>, SelectS<int>>(
+      'emits [SelectE] on [SelectE] without [selected]',
+      setUp: () {
+        bloc = SelectBloc<int>(
+          items: [1, 2, 3],
+        );
+      },
+      build: () => bloc,
+      seed: () => SelectedS<int>(items: [1, 2, 3], selected: 1),
+      act: (bloc) {
+        bloc.add(SelectE(null));
+      },
+      expect: () => [
+        isA<SelectS<int>>().having((s) => s.items, 'items', [1, 2, 3]),
+      ],
+    );
+
+    blocTest<SelectBloc<int>, SelectS<int>>(
+      'emits [SelectedS] when state is [SelectedS] on [SelectE] with [selected]',
+      setUp: () {
+        bloc = SelectBloc<int>(
+          items: [1, 2, 3],
+        );
+      },
+      seed: () => SelectedS<int>(items: [1, 2, 3], selected: 1),
+      build: () => bloc,
+      act: (bloc) {
+        bloc.add(SelectE(2));
+      },
+      expect: () => [
+        isA<SelectedS<int>>()
+            .having((s) => s.items, 'items', [1, 2, 3])
+            .having((s) => s.selected, 'selected', 2)
+            .having(
+              (s) => s.items.contains(s.selected),
+              'items contains selected',
+              true,
+            ),
       ],
     );
   });

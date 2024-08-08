@@ -1,3 +1,8 @@
+## 0.0.1-beta.4
+
+* **New Features:**
+  * Added `SelectBloc` to manage item selection from a list.
+
 ## 0.0.1-beta.3
 
 * **New Features:**

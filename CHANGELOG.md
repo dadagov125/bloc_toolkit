@@ -1,3 +1,8 @@
+## 0.0.1-beta.3
+
+* **New Features:**
+  * Implemented `ListBloc` to manage lists with filtering and sorting capabilities.
+
 ## 0.0.1-beta.2
 
 * **New Features:**

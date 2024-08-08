@@ -747,7 +747,7 @@ void main() {
     );
 
     blocTest<TestListBloc, DataS<List<int>>>(
-      'emits [LoadedDataS, LoadedDataS] on [InitializeDataE, UpdateDataE] and data  is [sorted, filtered] with [ListParams(IntComparator, IntFilterPredicate)]',
+      'emits [LoadedDataS, LoadedDataS] on [InitializeDataE, ApplyParamsE(UpdateDataE)] and data  is [sorted, filtered] with [ListParams(IntComparator, IntFilterPredicate)]',
       setUp: () {
         params = ListParams<int>(
           filters: [
@@ -762,8 +762,7 @@ void main() {
         bloc.add(InitializeDataE(
           unsortedList,
         ));
-        bloc.add(UpdateDataE<List<int>, ListParams<int>>((data) => data,
-            params: params));
+        bloc.add(ApplyParamsE(params));
       },
       expect: () => [
         isA<LoadedDataS<List<int>, ListParams<int>>>()

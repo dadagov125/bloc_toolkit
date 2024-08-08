@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bloc_toolkit/bloc_toolkit.dart';
 import 'package:bloc_toolkit/src/data_bloc/data_bloc.dart';
+import 'package:bloc_toolkit/src/list_bloc/list_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -32,6 +33,49 @@ class MockIdleS extends Mock implements IdleS<int> {}
 class MockLoadingS extends Mock implements LoadingS<int> {}
 
 class MockErrorS extends Mock implements ErrorS<int> {}
+
+abstract class ListRepository {
+  Future<List<int>> loadData();
+}
+
+class MockListRepository extends Mock implements ListRepository {}
+
+class TestListBloc extends ListBloc<int> {
+  TestListBloc({
+    List<int>? initialList,
+    ListParams<int>? initialParams,
+    required this.repository,
+  }) : super(
+          initialList: initialList,
+          initialParams: initialParams,
+        );
+
+  final ListRepository repository;
+
+  @override
+  FutureOr<List<int>> loadData(
+      DataS<List<int>> oldState, LoadDataE<ListParams<int>> event) {
+    return repository.loadData();
+  }
+}
+
+class IntComparator extends Comparator<int> {
+  @override
+  int compare(int a, int b) {
+    return a.compareTo(b);
+  }
+}
+
+class IntFilterPredicate extends FilterPredicate<int> {
+  IntFilterPredicate(this.filterList);
+
+  final List<int> filterList;
+
+  @override
+  bool test(int e) {
+    return filterList.contains(e);
+  }
+}
 
 void main() {
   group('DataBloc', () {
@@ -587,5 +631,149 @@ void main() {
         );
       });
     });
+  });
+
+  group('ListBloc', () {
+    late TestListBloc bloc;
+    late MockListRepository repository;
+
+    final List<int> unsortedList = [3, 1, 2, 9, 0, 4, 5, 8, 7, 6];
+    final List<int> sortedList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+    ListParams<int> params = ListParams();
+
+    setUp(() {
+      repository = MockListRepository();
+      // bloc = TestListBloc(repository: repository);
+      when(() => repository.loadData()).thenAnswer((_) async => unsortedList);
+    });
+
+    test(
+        'initialState is [LoadedDataS] without [ListParams] and [initialList] is [not modified] when passed without [ListParams]',
+        () {
+      bloc = TestListBloc(
+        repository: repository,
+        initialList: unsortedList,
+      );
+      expect(
+        bloc.state,
+        isA<LoadedDataS<List<int>, ListParams<int>>>()
+            .having((s) => s.data, 'data', unsortedList)
+            .having((s) => s.params, 'params', null),
+      );
+    });
+
+    test(
+        'initialState is [LoadedDataS] with [ListParams] and [initialList] is [sorted] when passed with [ListParams(IntComparator)]',
+        () {
+      params = ListParams(comparator: IntComparator());
+      bloc = TestListBloc(
+        repository: repository,
+        initialList: unsortedList,
+        initialParams: params,
+      );
+      expect(
+        bloc.state,
+        isA<LoadedDataS<List<int>, ListParams<int>>>()
+            .having((s) => s.data, 'data', sortedList)
+            .having((s) => s.params, 'params', params),
+      );
+    });
+
+    test(
+        'initialState is [LoadedDataS] with [ListParams] and [initialList] is [filtered] when passed with [ListParams(IntFilterPredicate)]',
+        () {
+      params = ListParams<int>(filters: [
+        IntFilterPredicate([1])
+      ]);
+      bloc = TestListBloc(
+        repository: repository,
+        initialList: unsortedList,
+        initialParams: params,
+      );
+      expect(
+        bloc.state,
+        isA<LoadedDataS<List<int>, ListParams<int>>>()
+            .having((s) => s.data.length, 'data.length', 1)
+            .having((s) => s.data, 'data', [1]).having(
+                (s) => s.params, 'params', params),
+      );
+    });
+
+    test(
+        'initialState is [LoadedDataS] with [ListParams] and [initialList] is [sorted, filtered] when passed with [ListParams(IntComparator, IntFilterPredicate)]',
+        () {
+      params = ListParams<int>(
+        filters: [
+          IntFilterPredicate([1, 2, 3, 4, 5]),
+        ],
+        comparator: IntComparator(),
+      );
+      bloc = TestListBloc(
+        repository: repository,
+        initialList: unsortedList,
+        initialParams: params,
+      );
+      expect(
+        bloc.state,
+        isA<LoadedDataS<List<int>, ListParams<int>>>()
+            .having((s) => s.data.length, 'data.length', 5)
+            .having((s) => s.data, 'data', [1, 2, 3, 4, 5]).having(
+                (s) => s.params, 'params', params),
+      );
+    });
+
+    blocTest<TestListBloc, DataS<List<int>>>(
+      'emits [LoadedDataS] on [InitializeDataE] and [data]  is [sorted, filtered] with [ListParams(IntComparator, IntFilterPredicate)]',
+      setUp: () {
+        params = ListParams<int>(
+          filters: [
+            IntFilterPredicate([1, 2, 3, 4, 5]),
+          ],
+          comparator: IntComparator(),
+        );
+        bloc = TestListBloc(repository: repository);
+      },
+      build: () => bloc,
+      act: (bloc) {
+        bloc.add(InitializeDataE(unsortedList, params: params));
+      },
+      expect: () => [
+        isA<LoadedDataS<List<int>, ListParams<int>>>()
+            .having((s) => s.data.length, 'data.length', 5)
+            .having((s) => s.data, 'data', [1, 2, 3, 4, 5]).having(
+                (s) => s.params, 'params', params),
+      ],
+    );
+
+    blocTest<TestListBloc, DataS<List<int>>>(
+      'emits [LoadedDataS, LoadedDataS] on [InitializeDataE, UpdateDataE] and data  is [sorted, filtered] with [ListParams(IntComparator, IntFilterPredicate)]',
+      setUp: () {
+        params = ListParams<int>(
+          filters: [
+            IntFilterPredicate([1, 2, 3, 4, 5]),
+          ],
+          comparator: IntComparator(),
+        );
+        bloc = TestListBloc(repository: repository);
+      },
+      build: () => bloc,
+      act: (bloc) async {
+        bloc.add(InitializeDataE(
+          unsortedList,
+        ));
+        bloc.add(UpdateDataE<List<int>, ListParams<int>>((data) => data,
+            params: params));
+      },
+      expect: () => [
+        isA<LoadedDataS<List<int>, ListParams<int>>>()
+            .having((s) => s.data, 'data', unsortedList)
+            .having((s) => s.params, 'params', null),
+        isA<LoadedDataS<List<int>, ListParams<int>>>()
+            .having((s) => s.data.length, 'data.length', 5)
+            .having((s) => s.data, 'data', [1, 2, 3, 4, 5]).having(
+                (s) => s.params, 'params', params),
+      ],
+    );
   });
 }

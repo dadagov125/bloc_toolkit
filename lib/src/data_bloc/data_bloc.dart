@@ -101,6 +101,7 @@ void _$onReloadingError<Data, Params>(
 abstract class InternalDataBloc<Data, Params>
     extends Bloc<DataE<Params>, DataS<Data>> {
   InternalDataBloc({
+    DataS<Data> initialState = const UnloadedDataS(),
     EventTransformer<DataE<Params>>? transformer,
     OnLoading<Data>? overridedOnLoading,
     OnLoaded<Data, Params>? overridedOnLoaded,
@@ -112,7 +113,7 @@ abstract class InternalDataBloc<Data, Params>
         _onLoadingError = overridedOnLoadingError ?? _$onLoadingError,
         _onReloading = overridedOnReloading ?? _$onReloading,
         _onReloadingError = overridedOnReloadingError ?? _$onReloadingError,
-        super(const UnloadedDataS()) {
+        super(initialState) {
     on<DataE<Params>>(
       _handleEvent,
       transformer: transformer ?? droppable(),

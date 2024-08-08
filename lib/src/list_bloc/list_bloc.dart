@@ -13,19 +13,8 @@ part 'list_params.dart';
 
 part 'immutable_transform_list.dart';
 
-void _$onLoaded<T>(
-  Emitter<DataS<List<T>>> emit,
-  List<T> data, {
-  ListParams<T>? params,
-}) {
-  List<T> originalList;
-  if (data is _ImmutableTransformList<T>) {
-    originalList = data._originalList;
-  } else {
-    originalList = data;
-  }
-
-  final list = _ImmutableTransformList<T>(
+List<T> _transform<T>(List<T> originalList, ListParams<T>? params) {
+  return _ImmutableTransformList<T>(
     originalList: originalList,
     transformList: (list) {
       if (params == null) {
@@ -40,6 +29,16 @@ void _$onLoaded<T>(
       return copy;
     },
   );
+}
+
+void _$onLoaded<T>(
+  Emitter<DataS<List<T>>> emit,
+  List<T> data, {
+  ListParams<T>? params,
+}) {
+  final originalList =
+      data is _ImmutableTransformList<T> ? data._originalList : data;
+  final list = _transform(originalList, params);
 
   emit(LoadedDataS(list, params: params));
 }
@@ -48,11 +47,13 @@ abstract class ListBloc<T> extends InternalDataBloc<List<T>, ListParams<T>> {
   ListBloc({
     List<T>? initialList,
     ListParams<T>? initialParams,
-  }) : super(overridedOnLoaded: _$onLoaded) {
-    if (initialList != null) {
-      add(InitializeDataE(initialList, params: initialParams));
-    }
-  }
+  }) : super(
+          overridedOnLoaded: _$onLoaded,
+          initialState: initialList != null
+              ? LoadedDataS(_transform(initialList, initialParams),
+                  params: initialParams)
+              : UnloadedDataS(),
+        );
 
   @override
   FutureOr<List<T>> loadData(

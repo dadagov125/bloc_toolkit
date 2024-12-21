@@ -75,25 +75,21 @@ class HomeScreen extends StatelessWidget {
           child: BlocProvider(
               create: (_) => AnimalBloc(animalRepository: AnimalRepository()),
               child: BlocConsumer<AnimalBloc, DataS<String>>(
-                listener: (context, state) => dataMapOrNull(
-                  state,
-                  error: (state) => errorMap(
-                    state,
-                    reloadingError: (state) {
-                      _showSnackBar(
-                          context, 'Reloading animal error: ${state.error}');
-                    },
-                    loadingError: (state) {
-                      _showSnackBar(
-                          context, 'Loading animal error: ${state.error}');
-                    },
-                  ),
-                ),
-                builder: (context, state) => dataMaybeMap(
-                  state,
-                  idle: (state) => idleMap(
-                    state,
-                    unloaded: (state) => Column(
+                listener: (context, state) {
+                  if (state is ReloadingDataErrorS<String, void>) {
+                    _showSnackBar(
+                        context, 'Reloading animal error: ${state.data}');
+                  } else if (state is LoadingDataErrorS<String, void>) {
+                    _showSnackBar(
+                        context, 'Loading animal error: ${state.error}');
+                  }
+                },
+                builder: (context, state) {
+                  if (state is LoadingDataS<String>) {
+                    return const Text('Loading animal...');
+                  }
+                  if (state is UnloadedS<String>) {
+                    return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text('Animal not loaded'),
@@ -106,8 +102,10 @@ class HomeScreen extends StatelessWidget {
                           child: const Text('Load Animal'),
                         ),
                       ],
-                    ),
-                    loaded: (state) => Column(
+                    );
+                  }
+                  if (state is LoadedDataS<String, void>) {
+                    return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(state.data),
@@ -120,19 +118,13 @@ class HomeScreen extends StatelessWidget {
                           child: const Text('Reload Animal'),
                         ),
                       ],
-                    ),
-                  ),
-                  loading: (state) => loadingMap(state,
-                      loading: (state) => const Text('Loading animal...'),
-                      reloading: (state) => Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(state.data),
-                              const Text('Reloading animal...'),
-                            ],
-                          )),
-                  orElse: () => const SizedBox(),
-                ),
+                    );
+                  }
+                  if (state is ReloadingDataS<String, void>) {
+                    return const Text('Loading animal...');
+                  }
+                  return const SizedBox();
+                },
               ))),
     );
   }

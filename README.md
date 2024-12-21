@@ -113,3 +113,82 @@ The DataBloc class can handle the following events:
 #### State machine
 
 ![Classes relationships](https://github.com/dadagov125/bloc_toolkit/blob/main/docs/state_machine.png?raw=true)
+
+### Error handling
+
+By default, all errors thrown during data loading are converted to DataException which can be received in
+LoadingDataErrorS or ReloadingDataErrorS states. Therefore, they will not get into `BlocObserver.onError`, 
+but you can handle them in `BlocObserver.onChange`
+
+```
+  @override
+  void onChange(BlocBase bloc, Change change) {
+    super.onChange(bloc, change);
+    final nextState = change.nextState;
+    if (nextState is ErrorS) {
+      final error = nextState.error;
+      if (error is UnhandledDataException) {
+        _logger.f('UnhandledDataException',
+            error: error.error, stackTrace: error.stackTrace);
+        //TODO: send to analytics
+      }
+    }
+  }
+```
+
+If you want to handle errors in `BlocObserver.onError` you should override this behavior using 
+the `overridedOnLoadingError` and `overridedOnReloadingError` methods when implementing your DataBloc .
+
+```
+void _$onLoadingError(
+  DataException error,
+  UnloadedDataS<String> state,
+  Emitter<DataS<String>> emit, {
+  String? params,
+}) {
+  if (error is UnhandledDataException) {
+    throw error;
+  }
+  emit(LoadingDataErrorS(error, params: params));
+  emit(const UnloadedDataS());
+}
+
+void _$onReloadingError(
+  DataException error,
+  LoadedS<String, String> state,
+  Emitter<DataS<String>> emit, {
+  String? params,
+}) {
+  if (error is UnhandledDataException) {
+    throw error;
+  }
+  emit(ReloadingDataErrorS(state, error, params: params));
+  emit(LoadedDataS(state.data, params: state.params));
+}
+
+class AnimalBloc extends DataBloc<String, String> {
+  AnimalBloc({
+    required AnimalRepository animalRepository,
+    super.overridedOnLoadingError = _$onLoadingError,
+    super.overridedOnReloadingError = _$onReloadingError,
+  })
+}
+```
+Then in `BlocObserver.onError` you can handle them
+
+```
+ @override
+  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+    super.onError(bloc, error, stackTrace);
+    if (error is UnhandledDataException) {
+      final originError = error.error;
+      final originStackTrace = error.stackTrace;
+      //send to sentry...
+    }
+  }
+```
+#### Custom DataExceptions
+To properly handle user errors (e.g. http errors) you must implement the `DataException` interface and they must be 
+thrown in repositories. Otherwise all errors will be converted to `UnhandledDataException` 
+which implements the `DataException` interface.
+

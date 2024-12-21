@@ -1,3 +1,8 @@
+## 1.0.0
+* **Changes:**
+  * Update docs.
+  * Release version
+
 ## 0.0.1-beta.5
 
 * **Changes:**

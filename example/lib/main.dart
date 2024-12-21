@@ -12,15 +12,14 @@ void main() {
   runApp(const MyApp());
 }
 
-class AnimalBloc extends DataBloc<String, void> {
+class AnimalBloc extends DataBloc<String, String> {
   AnimalBloc({required AnimalRepository animalRepository})
       : _animalRepository = animalRepository;
-
   final AnimalRepository _animalRepository;
 
   @override
-  FutureOr<String> loadData(DataS<String> oldState, LoadDataE<void> event) {
-    return _animalRepository.getAnimal();
+  FutureOr<String> loadData(DataS<String> oldState, LoadDataE<String> event) {
+    return _animalRepository.getAnimal(event.params!);
   }
 }
 
@@ -76,10 +75,10 @@ class HomeScreen extends StatelessWidget {
               create: (_) => AnimalBloc(animalRepository: AnimalRepository()),
               child: BlocConsumer<AnimalBloc, DataS<String>>(
                 listener: (context, state) {
-                  if (state is ReloadingDataErrorS<String, void>) {
+                  if (state is ReloadingDataErrorS<String, String>) {
                     _showSnackBar(
                         context, 'Reloading animal error: ${state.data}');
-                  } else if (state is LoadingDataErrorS<String, void>) {
+                  } else if (state is LoadingDataErrorS<String, String>) {
                     _showSnackBar(
                         context, 'Loading animal error: ${state.error}');
                   }
@@ -97,14 +96,14 @@ class HomeScreen extends StatelessWidget {
                           onPressed: () {
                             context
                                 .read<AnimalBloc>()
-                                .add(const LoadDataE<void>());
+                                .add(const LoadDataE(params: 'some args'));
                           },
                           child: const Text('Load Animal'),
                         ),
                       ],
                     );
                   }
-                  if (state is LoadedDataS<String, void>) {
+                  if (state is LoadedDataS<String, String>) {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -113,14 +112,14 @@ class HomeScreen extends StatelessWidget {
                           onPressed: () {
                             context
                                 .read<AnimalBloc>()
-                                .add(const ReloadDataE<void>());
+                                .add(const ReloadDataE(params: 'some args'));
                           },
                           child: const Text('Reload Animal'),
                         ),
                       ],
                     );
                   }
-                  if (state is ReloadingDataS<String, void>) {
+                  if (state is ReloadingDataS<String, String>) {
                     return const Text('Loading animal...');
                   }
                   return const SizedBox();

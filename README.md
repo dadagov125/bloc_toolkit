@@ -192,3 +192,24 @@ To properly handle user errors (e.g. http errors) you must implement the `DataEx
 thrown in repositories. Otherwise all errors will be converted to `UnhandledDataException` 
 which implements the `DataException` interface.
 
+
+
+## ListBloc
+
+ListBloc is an extended DataBloc for convenient work with lists with the ability to sort and filter list items.
+
+`ListBloc` by default has DateS<List<T>> where T is the type of the element in the list. 
+
+`ListBloc` has ListParams<T> with a list of filters(FilterPredicate) and a comparator(Comparator) for sorting elements.
+
+`ApplyParamsE` extends UpdateDataE and accepts ListParams parameters.
+
+
+## SelectBloc
+
+For convenience, the implementation of selecting an item from a list is implemented by `SelectBloc`.
+It does not extend `DataBloc`, but is a regular `Bloc`.
+
+`SelectBloc` has only two states `SelectS`, when the item is not selected, and `SelectedS`, if the item is selected.
+
+`SelectBloc` can handle only one event `SelectE`, which takes the item that should be selected or unselected if null is passed.

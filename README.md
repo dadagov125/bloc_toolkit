@@ -1,8 +1,9 @@
 # Bloc Toolkit
 
 This package, `bloc_toolkit`, provides a complete set of tools for efficient and flexible state management in Flutter
-applications using the Bloc pattern. It is designed to simplify the development of adaptive and dynamic applications by
-offering advanced functions for loading, reloading, updating and initializing data.
+apps
+using the Bloc pattern. It is designed to simplify app development with Bloc,
+offering advanced features for loading, reloading, updating, and initializing data.
 
 ## DataBloc
 
@@ -10,12 +11,7 @@ The `DataBloc` class is the core of the package. It is a generic class that prov
 managing the state of a data source. It is designed to be used as a base class for implementing business logic in the
 application.
 
-### Features
-
-- **DataBloc**: A generic class for managing the state of a data source.
-- **State Management**: Supports various states like loading, loaded, error, and idle.
-- **Event Handling**: Handles different events such as loading, reloading, updating, and initializing data.
-- **Error Handling**: Provides mechanisms to handle exceptions.
+## Usage
 
 ### Create your data bloc
 
@@ -33,6 +29,7 @@ class AnimalBloc extends DataBloc<String, String> {
 ```
 
 ### Build your widgets
+
 ```
 BlocProvider(
           create: (_) => AnimalBloc(animalRepository: AnimalRepository()),
@@ -62,6 +59,7 @@ BlocProvider(
 ```
 
 ### Add events
+
 ```
         final animalBloc = context.read<AnimalBloc>();
         
@@ -78,37 +76,42 @@ BlocProvider(
 ```
 
 ### States
-The DataBloc class can be in one of the following states:  
+
+`DataBlos` has the following states:
 
 #### Base States
+
 * `abstract DataS:` The base state for all states.
 * `abstract IdleS:` The base state when nothing is happening.
 * `abstract LoadingS:` The base state when data is loading or reloading.
 * `abstract ErrorS:` The base state when there is an error.
+
 #### Data unloaded states
+
 * `abstract UnloadedS:` The base state for all unloaded states.
 * `UnloadedDataS:` The initial state when no data is loaded.
 * `LoadingDataS:` The state when data is being loaded.
 * `LoadingDataErrorS:` The state when a data loading error occurred.
+
 #### Data loaded states
+
 * `abstract LoadedS:` The base state for all loaded states.
 * `LoadedDataS:` The state when data has been successfully loaded or initialized successfully
 * `ReloadingDataS:` The state when data is being reloaded.
 * `ReloadingDataErrorS:` The state when a data reload error occurred.
 
 ### Events
-The DataBloc class can handle the following events:  
+
+The DataBloc class can handle the following events:
+
 * `LoadDataE:` Event for initial data loading.
 * `InitializeDataE:` Event to initialize data without loading.
 * `ReloadDataE:` Event to reload data when it has already been loaded or initialized.
 * `UpdateDataE:` Event to update data when it is already loaded or initialized.
 
-
-
 #### Classes relationships
 
 ![Classes relationships](https://github.com/dadagov125/bloc_toolkit/blob/main/docs/class_relations.png?raw=true)
-
 
 #### State machine
 
@@ -117,7 +120,7 @@ The DataBloc class can handle the following events:
 ### Error handling
 
 By default, all errors thrown during data loading are converted to DataException which can be received in
-LoadingDataErrorS or ReloadingDataErrorS states. Therefore, they will not get into `BlocObserver.onError`, 
+LoadingDataErrorS or ReloadingDataErrorS states. Therefore, they will not get into `BlocObserver.onError`,
 but you can handle them in `BlocObserver.onChange`
 
 ```
@@ -136,7 +139,7 @@ but you can handle them in `BlocObserver.onChange`
   }
 ```
 
-If you want to handle errors in `BlocObserver.onError` you should override this behavior using 
+If you want to handle errors in `BlocObserver.onError` you should override this behavior using
 the `overridedOnLoadingError` and `overridedOnReloadingError` methods when implementing your DataBloc .
 
 ```
@@ -174,6 +177,7 @@ class AnimalBloc extends DataBloc<String, String> {
   })
 }
 ```
+
 Then in `BlocObserver.onError` you can handle them
 
 ```
@@ -187,23 +191,22 @@ Then in `BlocObserver.onError` you can handle them
     }
   }
 ```
+
 #### Custom DataExceptions
-To properly handle user errors (e.g. http errors) you must implement the `DataException` interface and they must be 
-thrown in repositories. Otherwise all errors will be converted to `UnhandledDataException` 
+
+To properly handle user errors (e.g. http errors) you must implement the `DataException` interface and they must be
+thrown in repositories. Otherwise all errors will be converted to `UnhandledDataException`
 which implements the `DataException` interface.
-
-
 
 ## ListBloc
 
 ListBloc is an extended DataBloc for convenient work with lists with the ability to sort and filter list items.
 
-`ListBloc` by default has DateS<List<T>> where T is the type of the element in the list. 
+`ListBloc` by default has DateS<List<T>> where T is the type of the element in the list.
 
 `ListBloc` has ListParams<T> with a list of filters(FilterPredicate) and a comparator(Comparator) for sorting elements.
 
 `ApplyParamsE` extends UpdateDataE and accepts ListParams parameters.
-
 
 ## SelectBloc
 
@@ -212,4 +215,5 @@ It does not extend `DataBloc`, but is a regular `Bloc`.
 
 `SelectBloc` has only two states `SelectS`, when the item is not selected, and `SelectedS`, if the item is selected.
 
-`SelectBloc` can handle only one event `SelectE`, which takes the item that should be selected or unselected if null is passed.
+`SelectBloc` can handle only one event `SelectE`, which takes the item that should be selected or unselected if null is
+passed.

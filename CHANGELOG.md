@@ -1,3 +1,8 @@
+## 0.0.1-beta.5
+
+* **Changes:**
+  * Removed unions.
+
 ## 0.0.1-beta.4
 
 * **New Features:**

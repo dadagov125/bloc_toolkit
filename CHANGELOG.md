@@ -1,3 +1,7 @@
+## 1.2.0
+* **Deps:**
+  * Upgrade to bloc ^9.0.0
+
 ## 1.0.0
 * **Changes:**
   * Update docs.

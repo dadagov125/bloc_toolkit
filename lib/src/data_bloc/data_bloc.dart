@@ -14,7 +14,6 @@ part 'data_loaded_state.dart';
 
 part 'data_unloaded_state.dart';
 
-part 'data_extension.dart';
 
 //------ types
 typedef OnLoading<Data> = void Function(Emitter<DataS<Data>> emit);

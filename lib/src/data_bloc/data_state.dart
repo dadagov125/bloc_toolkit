@@ -3,22 +3,38 @@ part of 'data_bloc.dart';
 // ----- Abstraction
 @immutable
 abstract class DataS<Data> {
-  const DataS();
+  const DataS({
+    this.data,
+    this.error,
+  });
+
+  final Data? data;
+
+  final DataException? error;
 }
 
 @immutable
 abstract class IdleS<Data> extends DataS<Data> {
-  const IdleS();
+  const IdleS({
+    Data? data,
+    DataException? error,
+  }) : super(data: data, error: error);
 }
 
 @immutable
 abstract class LoadingS<Data> extends DataS<Data> {
-  const LoadingS();
+  const LoadingS({
+    Data? data,
+    DataException? error,
+  }) : super(data: data, error: error);
 }
 
 @immutable
 abstract class ErrorS<Data> extends DataS<Data> {
-  const ErrorS(this.error);
+  const ErrorS({
+    required this.error,
+    Data? data,
+  }) : super(data: data, error: error);
 
   final DataException error;
 

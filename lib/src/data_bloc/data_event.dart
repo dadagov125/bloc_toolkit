@@ -63,3 +63,10 @@ class InitializeDataE<Data, Params> extends DataE<Params> {
   @override
   int get hashCode => data.hashCode;
 }
+
+@immutable
+class SubmitDataE<Params> extends DataE<Params> {
+  const SubmitDataE({
+    Params? params,
+  }) : super(params: params);
+}

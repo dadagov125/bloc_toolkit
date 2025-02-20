@@ -125,7 +125,15 @@ abstract class InternalDataBloc<Data, Params>
   final OnReloadingError<Data, Params> _onReloadingError;
 
   @protected
-  FutureOr<Data> loadData(DataS<Data> oldState, LoadDataE<Params> event);
+  FutureOr<Data?> loadData(DataS<Data> oldState, LoadDataE<Params> event) {
+    return null;
+  }
+
+  @protected
+  FutureOr<Data?> submittData(
+      LoadedS<Data, Params> oldState, SubmitDataE<Params> event) {
+    return null;
+  }
 
   FutureOr<void> _handleEvent(DataE<Params> event, Emitter<DataS<Data>> emit) {
     if (event is ReloadDataE<Params>) {
@@ -159,7 +167,10 @@ abstract class InternalDataBloc<Data, Params>
     try {
       _onLoading(emit);
       final data = await loadData(oldState, event);
-
+      if (data == null) {
+        emit(const UnloadedDataS());
+        return;
+      }
       _onLoaded(emit, data, params: params);
     } on DataException catch (error) {
       _onLoadingError(
@@ -195,7 +206,7 @@ abstract class InternalDataBloc<Data, Params>
         params: params,
       );
       final data = await loadData(oldState, event);
-      _onLoaded(emit, data, params: params);
+      _onLoaded(emit, data ?? oldState.data, params: params);
     } on DataException catch (error) {
       _onReloadingError(
         error,

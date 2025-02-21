@@ -46,6 +46,20 @@ typedef OnReloadingError<Data, Params> = void Function(
   Params? params,
 });
 
+typedef OnSubmitting<Data, Params> = void Function(
+  Emitter<DataS<Data>> emit,
+  LoadedS<Data, Params> oldState,
+  SubmitDataE<Params> event, {
+  Params? params,
+});
+
+typedef OnSubmittingError<Data, Params> = void Function(
+  DataException error,
+  LoadedS<Data, Params> state,
+  Emitter<DataS<Data>> emit, {
+  Params? params,
+});
+
 //----- Top lvl Functions
 
 void _$onLoading<Data>(Emitter<DataS<Data>> emit) {
@@ -95,6 +109,30 @@ void _$onReloadingError<Data, Params>(
   emit(LoadedDataS(state.data, params: state.params));
 }
 
+void _$onSubmitting<Data, Params>(
+  Emitter<DataS<Data>> emit,
+  LoadedS<Data, Params> oldState,
+  SubmitDataE<Params> event, {
+  Params? params,
+}) {
+  emit(
+    SubmittingDataS(
+      oldState,
+      params: params,
+    ),
+  );
+}
+
+void _$onSubmittingError<Data, Params>(
+  DataException error,
+  LoadedS<Data, Params> state,
+  Emitter<DataS<Data>> emit, {
+  Params? params,
+}) {
+  emit(SubmittingDataErrorS(state, error, params: params));
+  emit(LoadedDataS(state.data, params: state.params));
+}
+
 //----- Internal bloc
 abstract class InternalDataBloc<Data, Params>
     extends Bloc<DataE<Params>, DataS<Data>> {
@@ -106,11 +144,15 @@ abstract class InternalDataBloc<Data, Params>
     OnLoadingError<Data, Params>? overridedOnLoadingError,
     OnReloading<Data, Params>? overridedOnReloading,
     OnReloadingError<Data, Params>? overridedOnReloadingError,
+    OnSubmitting<Data, Params>? overridedOnSubmitting,
+    OnSubmittingError<Data, Params>? overridedOnSubmittingError,
   })  : _onLoading = overridedOnLoading ?? _$onLoading,
         _onLoaded = overridedOnLoaded ?? _$onLoaded,
         _onLoadingError = overridedOnLoadingError ?? _$onLoadingError,
         _onReloading = overridedOnReloading ?? _$onReloading,
         _onReloadingError = overridedOnReloadingError ?? _$onReloadingError,
+        _onSubmitting = overridedOnSubmitting ?? _$onSubmitting,
+        _onSubmittingError = overridedOnSubmittingError ?? _$onSubmittingError,
         super(initialState) {
     on<DataE<Params>>(
       _handleEvent,
@@ -119,13 +161,23 @@ abstract class InternalDataBloc<Data, Params>
   }
 
   final OnLoading<Data> _onLoading;
-  final OnReloading<Data, Params> _onReloading;
   final OnLoaded<Data, Params> _onLoaded;
   final OnLoadingError<Data, Params> _onLoadingError;
+  final OnReloading<Data, Params> _onReloading;
   final OnReloadingError<Data, Params> _onReloadingError;
+  final OnSubmitting<Data, Params> _onSubmitting;
+  final OnSubmittingError<Data, Params> _onSubmittingError;
 
   @protected
-  FutureOr<Data> loadData(DataS<Data> oldState, LoadDataE<Params> event);
+  FutureOr<Data?> loadData(DataS<Data> oldState, LoadDataE<Params> event) {
+    return null;
+  }
+
+  @protected
+  FutureOr<Data?> submittData(
+      LoadedS<Data, Params> oldState, SubmitDataE<Params> event) {
+    return null;
+  }
 
   FutureOr<void> _handleEvent(DataE<Params> event, Emitter<DataS<Data>> emit) {
     if (event is ReloadDataE<Params>) {
@@ -145,6 +197,9 @@ abstract class InternalDataBloc<Data, Params>
     if (event is InitializeDataE<Data, Params>) {
       return _initialize(event, emit);
     }
+    if (event is SubmitDataE<Params>) {
+      return _submit(event, emit);
+    }
   }
 
   Future<void> _load(
@@ -159,7 +214,10 @@ abstract class InternalDataBloc<Data, Params>
     try {
       _onLoading(emit);
       final data = await loadData(oldState, event);
-
+      if (data == null) {
+        emit(const UnloadedDataS());
+        return;
+      }
       _onLoaded(emit, data, params: params);
     } on DataException catch (error) {
       _onLoadingError(
@@ -170,6 +228,34 @@ abstract class InternalDataBloc<Data, Params>
       );
     } on Object catch (error, stackTrace) {
       _onLoadingError(
+        UnhandledDataException(error: error, stackTrace: stackTrace),
+        oldState,
+        emit,
+        params: params,
+      );
+    }
+  }
+
+  FutureOr<void> _submit(
+      SubmitDataE<Params> event, Emitter<DataS<Data>> emit) async {
+    final oldState = state;
+    final params = event.params;
+    if (oldState is! LoadedS<Data, Params>) {
+      return;
+    }
+    _onSubmitting(emit, oldState, event, params: params);
+    try {
+      final data = await submittData(oldState, event);
+      _onLoaded(emit, data ?? oldState.data, params: params);
+    } on DataException catch (error) {
+      _onSubmittingError(
+        error,
+        oldState,
+        emit,
+        params: params,
+      );
+    } on Object catch (error, stackTrace) {
+      _onSubmittingError(
         UnhandledDataException(error: error, stackTrace: stackTrace),
         oldState,
         emit,
@@ -195,7 +281,7 @@ abstract class InternalDataBloc<Data, Params>
         params: params,
       );
       final data = await loadData(oldState, event);
-      _onLoaded(emit, data, params: params);
+      _onLoaded(emit, data ?? oldState.data, params: params);
     } on DataException catch (error) {
       _onReloadingError(
         error,

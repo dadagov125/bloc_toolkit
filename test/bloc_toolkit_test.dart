@@ -24,7 +24,7 @@ class TestInternalDataBloc extends InternalDataBloc<int, String> {
   }
 
   @override
-  FutureOr<int?> submittData(
+  FutureOr<int?> submitData(
       LoadedS<int, String> oldState, SubmitDataE<String> event) {
     return repository.submitData(event.params!);
   }

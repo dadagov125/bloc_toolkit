@@ -173,7 +173,7 @@ abstract class InternalDataBloc<Data, Params>
   }
 
   @protected
-  FutureOr<Data?> submittData(
+  FutureOr<Data?> submitData(
       LoadedS<Data, Params> oldState, SubmitDataE<Params> event) {
     return null;
   }
@@ -244,7 +244,7 @@ abstract class InternalDataBloc<Data, Params>
     }
     _onSubmitting(emit, oldState, event, params: params);
     try {
-      final data = await submittData(oldState, event);
+      final data = await submitData(oldState, event);
       _onLoaded(emit, data ?? oldState.data, params: params);
     } on DataException catch (error) {
       _onSubmittingError(

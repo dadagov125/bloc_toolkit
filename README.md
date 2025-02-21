@@ -31,31 +31,61 @@ class AnimalBloc extends DataBloc<String, String> {
 ### Build your widgets
 
 ```
-BlocProvider(
-          create: (_) => AnimalBloc(animalRepository: AnimalRepository()),
-          child: BlocConsumer<AnimalBloc, DataS<String>>(
-            listener: (context, state) {
-              if (state is ErrorS<String>) {
-                _showSnackBar(context, 'Loading animal error: ${state.error}');
-              } 
-            },
-            builder: (context, state) {
-              if (state is UnloadedDataS<String>) {
-                return ...
-              }
-              if (state is LoadingDataS<String>) {
-                return ...
-              }
-              if (state is LoadedDataS<String, String>) {
-                return ...
-              }
-              if (state is ReloadingDataS<String, String>) {
-                return ...
-              }
-              return ...
-            },
-          ),
-        )
+    BlocProvider(
+      create: (_) => AnimalBloc(animalRepository: AnimalRepository()),
+      child: BlocConsumer<AnimalBloc, DataS<String>>(
+        listener: (context, state) {
+          if (state is ErrorS<String>) {
+            _showSnackBar(context, 'Loading animal error: ${state.error}');
+          }
+        },
+        builder: (context, state) {
+          if (state is UnloadedDataS<String>) {
+            return ...
+          }
+          if (state is LoadingDataS<String>) {
+            return ...
+          }
+          if (state is LoadedDataS<String, String>) {
+            return ...
+          }
+          if (state is ReloadingDataS<String, String>) {
+            return ...
+          }
+          return ...
+        },
+      ),
+    );
+        
+        
+        
+        ------OR------
+        
+        
+        
+    BlocProvider(
+      create: (_) => AnimalBloc(animalRepository: AnimalRepository()),
+      child: BlocConsumer<AnimalBloc, DataS<String>>(
+        listener: (context, state) {
+          if (state.isError) {
+            _showSnackBar(context, 'Loading animal error: ${state.error!}');
+          }
+        },
+        builder: (context, state) {
+          if (state.isUnloaded) {
+            return ...
+          }
+          if (state.isLoading) {
+            return ...
+          }
+          if (state.isLoaded) {
+            return ...
+          }
+          return ...
+        },
+      ),
+    );       
+        
 ```
 
 ### Add events

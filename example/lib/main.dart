@@ -84,10 +84,10 @@ class HomeScreen extends StatelessWidget {
                   }
                 },
                 builder: (context, state) {
-                  if (state is LoadingDataS<String>) {
+                  if (state.isLoading) {
                     return const Text('Loading animal...');
                   }
-                  if (state is UnloadedS<String>) {
+                  if (state.isUnloaded) {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -103,11 +103,11 @@ class HomeScreen extends StatelessWidget {
                       ],
                     );
                   }
-                  if (state is LoadedDataS<String, String>) {
+                  if (state.isLoaded) {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(state.data),
+                        Text(state.data!),
                         ElevatedButton(
                           onPressed: () {
                             context
@@ -119,7 +119,7 @@ class HomeScreen extends StatelessWidget {
                       ],
                     );
                   }
-                  if (state is ReloadingDataS<String, String>) {
+                  if (state.isLoading) {
                     return const Text('Loading animal...');
                   }
                   return const SizedBox();

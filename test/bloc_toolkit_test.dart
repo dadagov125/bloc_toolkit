@@ -9,7 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 abstract class DataRepository {
-  Future<int> loadData(String params);
+  Future<int?> loadData(String params);
 
   Future<int?> submitData(String params);
 }
@@ -124,6 +124,19 @@ void main() {
       );
 
       blocTest<InternalDataBloc<int, String>, DataS<int>>(
+        'emits [LoadingDataS, UnloadedDataS] on LoadDataE when loadData return null',
+        build: () => bloc,
+        setUp: () {
+          when(() => repository.loadData(any())).thenAnswer((_) async => null);
+        },
+        act: (bloc) => bloc.add(const LoadDataE(params: 'test')),
+        expect: () => [
+          isA<LoadingDataS<int>>(),
+          isA<UnloadedDataS<int>>(),
+        ],
+      );
+
+      blocTest<InternalDataBloc<int, String>, DataS<int>>(
         'emits [LoadingDataS, LoadingDataErrorS, UnloadedDataS] on LoadDataE with DataException',
         build: () => bloc,
         setUp: () {
@@ -166,7 +179,7 @@ void main() {
       );
 
       blocTest<InternalDataBloc<int, String>, DataS<int>>(
-        'emits [ReloadingDataS, LoadedDataSuccessS] on ReloadDataE',
+        'emits [ReloadingDataS, LoadedDataSuccessS(with update data)] on ReloadDataE when loadData return data',
         build: () => bloc,
         seed: () => const LoadedDataS<int, String>(0, params: 'test'),
         act: (bloc) => bloc.add(
@@ -179,6 +192,27 @@ void main() {
               .having((s) => s.params, 'params', 'test2'),
           isA<LoadedDataS<int, String>>()
               .having((s) => s.data, 'data', 1)
+              .having((s) => s.params, 'params', 'test2'),
+        ],
+      );
+
+      blocTest<InternalDataBloc<int, String>, DataS<int>>(
+        'emits [ReloadingDataS, LoadedDataSuccessS(without update data)] on ReloadDataE when loadData return null',
+        build: () => bloc,
+        seed: () => const LoadedDataS<int, String>(0, params: 'test'),
+        setUp: () {
+          when(() => repository.loadData(any())).thenAnswer((_) async => null);
+        },
+        act: (bloc) => bloc.add(
+          const ReloadDataE(params: 'test2', isNextLoading: true),
+        ),
+        expect: () => [
+          isA<ReloadingDataS<int, String>>()
+              .having((s) => s.isNextLoading, 'isNextLoading', true)
+              .having((s) => s.data, 'data', 0)
+              .having((s) => s.params, 'params', 'test2'),
+          isA<LoadedDataS<int, String>>()
+              .having((s) => s.data, 'data', 0)
               .having((s) => s.params, 'params', 'test2'),
         ],
       );
@@ -289,7 +323,7 @@ void main() {
       );
 
       blocTest<InternalDataBloc<int, String>, DataS<int>>(
-        'emits [SubmittingDataS, LoadedDataSuccessS] on SubmitDataE with update data',
+        'emits [SubmittingDataS, LoadedDataSuccessS(with update data)] on SubmitDataE when submitData return data',
         build: () => bloc,
         setUp: () {
           when(() => repository.submitData(any()))
@@ -308,7 +342,7 @@ void main() {
       );
 
       blocTest<InternalDataBloc<int, String>, DataS<int>>(
-        'emits [SubmittingDataS, LoadedDataSuccessS] on SubmitDataE without update data',
+        'emits [SubmittingDataS, LoadedDataSuccessS(without update data)] on SubmitDataE when submitData return null',
         build: () => bloc,
         setUp: () {
           when(() => repository.submitData(any()))

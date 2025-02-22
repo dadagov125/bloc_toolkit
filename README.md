@@ -1,9 +1,8 @@
 # Bloc Toolkit
 
-This package, `bloc_toolkit`, provides a complete set of tools for efficient and flexible state management in Flutter
-apps
-using the Bloc pattern. It is designed to simplify app development with Bloc,
-offering advanced features for loading, reloading, updating, and initializing data.
+This package, `bloc_toolkit`, provides a complete set of tools for efficient and flexible state management 
+in Flutter apps using the Bloc pattern. It is designed to simplify app development with Bloc, offering 
+advanced features for loading, reloading, updating, submitting, and initializing data.
 
 ## DataBloc
 
@@ -16,15 +15,19 @@ application.
 ### Create your data bloc
 
 ```
-class AnimalBloc extends DataBloc<String, String> {
+class AnimalBloc extends DataBloc<String, int> {
   AnimalBloc({required AnimalRepository animalRepository})
       : _animalRepository = animalRepository;
   final AnimalRepository _animalRepository;
 
   @override
-  FutureOr<String> loadData(DataS<String> oldState, LoadDataE<String> event) {
-    return _animalRepository.getAnimal(event.params!);
-  }
+  FutureOr<String> loadData(DataS<String> oldState, LoadDataE<int> event) =>
+      _animalRepository.getAnimal(event.params!);
+
+  @override
+  FutureOr<String?> submitData(
+          LoadedDataS<String, int> oldState, SubmitDataE<String, int> event) =>
+      _animalRepository.saveAnimal(event.params!, event.data);
 }
 ```
 
@@ -46,10 +49,13 @@ class AnimalBloc extends DataBloc<String, String> {
           if (state is LoadingDataS<String>) {
             return ...
           }
-          if (state is LoadedDataS<String, String>) {
+          if (state is LoadedDataS<String, int>) {
             return ...
           }
-          if (state is ReloadingDataS<String, String>) {
+          if (state is ReloadingDataS<String, int>) {
+            return ...
+          }
+          if(state is SubmittingDataS<String, int>){
             return ...
           }
           return ...
@@ -81,6 +87,9 @@ class AnimalBloc extends DataBloc<String, String> {
           if (state.isLoaded) {
             return ...
           }
+          if(state.isSubmitting){
+            return ...
+          }
           return ...
         },
       ),
@@ -103,6 +112,11 @@ class AnimalBloc extends DataBloc<String, String> {
         animalBloc.add(const ReloadDataE(params: 'some args')) 
         // or
         animalBloc.add(UpdateDataE((currentData) => 'cat'));
+        
+        //also you can change and submit data
+        animalBloc.add(SubmitDataE('cat', params: 0));
+        
+      
 ```
 
 ### States
@@ -129,6 +143,8 @@ class AnimalBloc extends DataBloc<String, String> {
 * `LoadedDataS:` The state when data has been successfully loaded or initialized successfully
 * `ReloadingDataS:` The state when data is being reloaded.
 * `ReloadingDataErrorS:` The state when a data reload error occurred.
+* `SubmittingDataS:` State when data is being submitted.
+* `SubmittingDataErrorS:` State when a data submission error occurred.
 
 ### Events
 
@@ -138,6 +154,7 @@ The DataBloc class can handle the following events:
 * `InitializeDataE:` Event to initialize data without loading.
 * `ReloadDataE:` Event to reload data when it has already been loaded or initialized.
 * `UpdateDataE:` Event to update data when it is already loaded or initialized.
+* `SubmitDataE:` Event to submit data.
 
 #### Classes relationships
 

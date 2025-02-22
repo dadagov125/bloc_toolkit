@@ -2,10 +2,30 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:bloc_toolkit/bloc_toolkit.dart';
-import 'package:faker/faker.dart';
 
 class AnimalRepository {
-  FutureOr<String> getAnimal(String params) async {
+  final animals = [
+    'Dog',
+    'Cat',
+    'Cow',
+    'Horse',
+    'Elephant',
+    'Lion',
+    'Tiger',
+  ];
+
+  FutureOr<String> getAnimal(int index) async {
+    await _checkError();
+    return animals[index];
+  }
+
+  FutureOr<String> saveAnimal(int index, String animal) async {
+    await _checkError();
+    animals[index] = animal;
+    return animals[index];
+  }
+
+  Future<void> _checkError() async {
     await Future.delayed(const Duration(seconds: 1));
     final i = Random().nextInt(3);
     if (i == 1) {
@@ -14,7 +34,6 @@ class AnimalRepository {
     if (i == 2) {
       throw Exception();
     }
-    return faker.animal.name();
   }
 }
 

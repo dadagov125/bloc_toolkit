@@ -11,6 +11,7 @@ abstract class LoadedS<Data, Params> extends DataS<Data> {
   }) : super(error: error);
 
   @override
+  // ignore: overridden_fields
   final Data data;
   final Params? params;
 
@@ -68,7 +69,9 @@ class ReloadingDataS<Data, Params> extends LoadedS<Data, Params>
 /// Error
 @immutable
 class ReloadingDataErrorS<Data, Params> extends LoadedS<Data, Params>
-    implements ErrorS<Data> {
+    // ignore: avoid_implementing_value_types
+    implements
+        ErrorS<Data> {
   ReloadingDataErrorS(
     LoadedS<Data, Params> oldState,
     this.error, {
@@ -76,6 +79,7 @@ class ReloadingDataErrorS<Data, Params> extends LoadedS<Data, Params>
   }) : super(oldState.data, params: params);
 
   @override
+  // ignore: overridden_fields
   final DataException error;
 
   @override
@@ -102,7 +106,9 @@ class SubmittingDataS<Data, Params> extends LoadedS<Data, Params>
 
 @immutable
 class SubmittingDataErrorS<Data, Params> extends LoadedS<Data, Params>
-    implements ErrorS<Data> {
+    // ignore: avoid_implementing_value_types
+    implements
+        ErrorS<Data> {
   SubmittingDataErrorS(
     LoadedS<Data, Params> oldState,
     this.error, {
@@ -110,6 +116,7 @@ class SubmittingDataErrorS<Data, Params> extends LoadedS<Data, Params>
   }) : super(oldState.data, params: params);
 
   @override
+  // ignore: overridden_fields
   final DataException error;
 
   @override

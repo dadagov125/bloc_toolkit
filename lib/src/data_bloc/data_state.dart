@@ -36,6 +36,8 @@ abstract class ErrorS<Data> extends DataS<Data> {
     Data? data,
   }) : super(data: data, error: error);
 
+  @override
+  // ignore: overridden_fields
   final DataException error;
 
   @override

@@ -19,7 +19,8 @@ class SelectS<T> {
 
 @immutable
 class SelectedS<T> extends SelectS<T> {
-  SelectedS({required this.selected, required List<T> items}) : super(items);
+  const SelectedS({required this.selected, required List<T> items})
+      : super(items);
   final T selected;
 
   @override

@@ -14,8 +14,8 @@ part 'data_loaded_state.dart';
 
 part 'data_unloaded_state.dart';
 
-
 //------ types
+// ignore: public_member_api_docs
 typedef OnLoading<Data> = void Function(Emitter<DataS<Data>> emit);
 
 typedef OnLoaded<Data, Params> = void Function(
@@ -33,28 +33,28 @@ typedef OnLoadingError<Data, Params> = void Function(
 
 typedef OnReloading<Data, Params> = void Function(
   Emitter<DataS<Data>> emit,
-  LoadedS<Data, Params> oldState,
+  LoadedDataS<Data, Params> oldState,
   ReloadDataE<Params> event, {
   Params? params,
 });
 
 typedef OnReloadingError<Data, Params> = void Function(
   DataException error,
-  LoadedS<Data, Params> state,
+  LoadedDataS<Data, Params> state,
   Emitter<DataS<Data>> emit, {
   Params? params,
 });
 
 typedef OnSubmitting<Data, Params> = void Function(
   Emitter<DataS<Data>> emit,
-  LoadedS<Data, Params> oldState,
+  LoadedDataS<Data, Params> oldState,
   SubmitDataE<Params> event, {
   Params? params,
 });
 
 typedef OnSubmittingError<Data, Params> = void Function(
   DataException error,
-  LoadedS<Data, Params> state,
+  LoadedDataS<Data, Params> state,
   Emitter<DataS<Data>> emit, {
   Params? params,
 });
@@ -85,7 +85,7 @@ void _$onLoadingError<Data, Params>(
 
 void _$onReloading<Data, Params>(
   Emitter<DataS<Data>> emit,
-  LoadedS<Data, Params> oldState,
+  LoadedDataS<Data, Params> oldState,
   ReloadDataE<Params> event, {
   Params? params,
 }) {
@@ -100,17 +100,17 @@ void _$onReloading<Data, Params>(
 
 void _$onReloadingError<Data, Params>(
   DataException error,
-  LoadedS<Data, Params> state,
+  LoadedDataS<Data, Params> oldState,
   Emitter<DataS<Data>> emit, {
   Params? params,
 }) {
-  emit(ReloadingDataErrorS(state, error, params: params));
-  emit(LoadedDataS(state.data, params: state.params));
+  emit(ReloadingDataErrorS(oldState, error, params: params));
+  emit(LoadedDataS(oldState.data, params: oldState.params));
 }
 
 void _$onSubmitting<Data, Params>(
   Emitter<DataS<Data>> emit,
-  LoadedS<Data, Params> oldState,
+  LoadedDataS<Data, Params> oldState,
   SubmitDataE<Params> event, {
   Params? params,
 }) {
@@ -124,7 +124,7 @@ void _$onSubmitting<Data, Params>(
 
 void _$onSubmittingError<Data, Params>(
   DataException error,
-  LoadedS<Data, Params> state,
+  LoadedDataS<Data, Params> state,
   Emitter<DataS<Data>> emit, {
   Params? params,
 }) {
@@ -168,15 +168,15 @@ abstract class InternalDataBloc<Data, Params>
   final OnSubmittingError<Data, Params> _onSubmittingError;
 
   @protected
-  FutureOr<Data?> loadData(DataS<Data> oldState, LoadDataE<Params> event) {
-    return null;
-  }
+  FutureOr<Data?> loadData(DataS<Data> oldState, LoadDataE<Params> event) =>
+      null;
 
   @protected
   FutureOr<Data?> submitData(
-      LoadedS<Data, Params> oldState, SubmitDataE<Params> event) {
-    return null;
-  }
+    LoadedDataS<Data, Params> oldState,
+    SubmitDataE<Params> event,
+  ) =>
+      null;
 
   FutureOr<void> _handleEvent(DataE<Params> event, Emitter<DataS<Data>> emit) {
     if (event is ReloadDataE<Params>) {
@@ -236,10 +236,12 @@ abstract class InternalDataBloc<Data, Params>
   }
 
   FutureOr<void> _submit(
-      SubmitDataE<Params> event, Emitter<DataS<Data>> emit) async {
+    SubmitDataE<Params> event,
+    Emitter<DataS<Data>> emit,
+  ) async {
     final oldState = state;
     final params = event.params;
-    if (oldState is! LoadedS<Data, Params>) {
+    if (oldState is! LoadedDataS<Data, Params>) {
       return;
     }
     _onSubmitting(emit, oldState, event, params: params);
@@ -269,7 +271,7 @@ abstract class InternalDataBloc<Data, Params>
   ) async {
     final oldState = state;
     final params = event.params;
-    if (oldState is! LoadedS<Data, Params>) {
+    if (oldState is! LoadedDataS<Data, Params>) {
       return;
     }
     try {

@@ -2,7 +2,7 @@ part of 'select_bloc.dart';
 
 @immutable
 class SelectE<T> {
-  SelectE(this.item);
+  const SelectE(this.item);
 
   final T? item;
 

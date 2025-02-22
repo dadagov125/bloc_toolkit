@@ -48,13 +48,12 @@ typedef OnReloadingError<Data, Params> = void Function(
 typedef OnSubmitting<Data, Params> = void Function(
   Emitter<DataS<Data>> emit,
   LoadedDataS<Data, Params> oldState,
-  SubmitDataE<Params> event, {
-  Params? params,
-});
+  SubmitDataE<Data, Params> event,
+);
 
 typedef OnSubmittingError<Data, Params> = void Function(
   DataException error,
-  LoadedDataS<Data, Params> state,
+  LoadedDataS<Data, Params> oldState,
   Emitter<DataS<Data>> emit, {
   Params? params,
 });
@@ -111,13 +110,12 @@ void _$onReloadingError<Data, Params>(
 void _$onSubmitting<Data, Params>(
   Emitter<DataS<Data>> emit,
   LoadedDataS<Data, Params> oldState,
-  SubmitDataE<Params> event, {
-  Params? params,
-}) {
+  SubmitDataE<Data, Params> event,
+) {
   emit(
     SubmittingDataS(
       oldState,
-      params: params,
+      params: event.params,
     ),
   );
 }
@@ -174,7 +172,7 @@ abstract class InternalDataBloc<Data, Params>
   @protected
   FutureOr<Data?> submitData(
     LoadedDataS<Data, Params> oldState,
-    SubmitDataE<Params> event,
+    SubmitDataE<Data, Params> event,
   ) =>
       null;
 
@@ -196,7 +194,7 @@ abstract class InternalDataBloc<Data, Params>
     if (event is InitializeDataE<Data, Params>) {
       return _initialize(event, emit);
     }
-    if (event is SubmitDataE<Params>) {
+    if (event is SubmitDataE<Data, Params>) {
       return _submit(event, emit);
     }
   }
@@ -236,31 +234,30 @@ abstract class InternalDataBloc<Data, Params>
   }
 
   FutureOr<void> _submit(
-    SubmitDataE<Params> event,
+    SubmitDataE<Data, Params> event,
     Emitter<DataS<Data>> emit,
   ) async {
     final oldState = state;
-    final params = event.params;
     if (oldState is! LoadedDataS<Data, Params>) {
       return;
     }
-    _onSubmitting(emit, oldState, event, params: params);
+    _onSubmitting(emit, oldState, event);
     try {
       final data = await submitData(oldState, event);
-      _onLoaded(emit, data ?? oldState.data, params: params);
+      _onLoaded(emit, data ?? oldState.data, params: event.params);
     } on DataException catch (error) {
       _onSubmittingError(
         error,
         oldState,
         emit,
-        params: params,
+        params: event.params,
       );
     } on Object catch (error, stackTrace) {
       _onSubmittingError(
         UnhandledDataException(error: error, stackTrace: stackTrace),
         oldState,
         emit,
-        params: params,
+        params: event.params,
       );
     }
   }

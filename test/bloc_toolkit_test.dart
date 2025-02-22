@@ -26,7 +26,7 @@ class TestInternalDataBloc extends InternalDataBloc<int, String> {
   @override
   FutureOr<int?> submitData(
     LoadedS<int, String> oldState,
-    SubmitDataE<String> event,
+    SubmitDataE<int, String> event,
   ) =>
       repository.submitData(event.params!);
 }
@@ -315,7 +315,7 @@ void main() {
         'nothing emits when state is not LoadedDataS on SubmitDataE',
         build: () => bloc,
         seed: () => const UnloadedDataS<int>(),
-        act: (bloc) => bloc.add(const SubmitDataE(params: 'test2')),
+        act: (bloc) => bloc.add(const SubmitDataE(1, params: 'test2')),
         expect: () => <DataS<int>>[],
       );
 
@@ -327,7 +327,7 @@ void main() {
               .thenAnswer((_) => Future.value(123));
         },
         seed: () => const LoadedDataS<int, String>(0, params: 'test'),
-        act: (bloc) => bloc.add(const SubmitDataE(params: 'test2')),
+        act: (bloc) => bloc.add(const SubmitDataE(1, params: 'test2')),
         expect: () => [
           isA<SubmittingDataS<int, String>>()
               .having((s) => s.data, 'data', 0)
@@ -346,7 +346,7 @@ void main() {
               .thenAnswer((_) => Future.value());
         },
         seed: () => const LoadedDataS<int, String>(0, params: 'test'),
-        act: (bloc) => bloc.add(const SubmitDataE(params: 'test2')),
+        act: (bloc) => bloc.add(const SubmitDataE(1, params: 'test2')),
         expect: () => [
           isA<SubmittingDataS<int, String>>()
               .having((s) => s.data, 'data', 0)
@@ -365,7 +365,7 @@ void main() {
               .thenThrow(MockDataException());
         },
         seed: () => const LoadedDataS<int, String>(0, params: 'test'),
-        act: (bloc) => bloc.add(const SubmitDataE(params: 'test2')),
+        act: (bloc) => bloc.add(const SubmitDataE(1, params: 'test2')),
         expect: () => [
           isA<SubmittingDataS<int, String>>()
               .having((s) => s.data, 'data', 0)
@@ -387,7 +387,7 @@ void main() {
           when(() => repository.submitData(any())).thenThrow(Exception());
         },
         seed: () => const LoadedDataS<int, String>(0, params: 'test'),
-        act: (bloc) => bloc.add(const SubmitDataE(params: 'test2')),
+        act: (bloc) => bloc.add(const SubmitDataE(1, params: 'test2')),
         expect: () => [
           isA<SubmittingDataS<int, String>>()
               .having((s) => s.data, 'data', 0)

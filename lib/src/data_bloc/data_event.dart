@@ -65,8 +65,22 @@ class InitializeDataE<Data, Params> extends DataE<Params> {
 }
 
 @immutable
-class SubmitDataE<Params> extends DataE<Params> {
-  const SubmitDataE({
+class SubmitDataE<Data, Params> extends DataE<Params> {
+  const SubmitDataE(
+    this.data, {
     Params? params,
   }) : super(params: params);
+
+  final Data data;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      super == other &&
+          other is SubmitDataE &&
+          runtimeType == other.runtimeType &&
+          data == other.data;
+
+  @override
+  int get hashCode => super.hashCode ^ data.hashCode;
 }

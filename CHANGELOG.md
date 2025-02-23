@@ -1,3 +1,14 @@
+## 1.3.1
+* **Changes:**
+  * Update changelogs
+
+## 1.3.0
+* **Changes:**
+  * Added the ability to submit data
+  * Added submitData method to DataBloc
+  * Added extensions for DataS
+  * Now Implementation of LoadData method is optional
+
 ## 1.2.0
 * **Deps:**
   * Upgrade to bloc ^9.0.0

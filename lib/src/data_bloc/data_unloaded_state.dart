@@ -22,10 +22,13 @@ class LoadingDataS<Data> extends UnloadedS<Data> implements LoadingS<Data> {
 /// Error
 @immutable
 class LoadingDataErrorS<Data, Params> extends UnloadedS<Data>
-    implements ErrorS<Data> {
+    // ignore: avoid_implementing_value_types
+    implements
+        ErrorS<Data> {
   const LoadingDataErrorS(this.error, {this.params});
 
   @override
+  // ignore: overridden_fields
   final DataException error;
   final Params? params;
 

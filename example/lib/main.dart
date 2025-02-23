@@ -12,15 +12,19 @@ void main() {
   runApp(const MyApp());
 }
 
-class AnimalBloc extends DataBloc<String, String> {
+class AnimalBloc extends DataBloc<String, int> {
   AnimalBloc({required AnimalRepository animalRepository})
       : _animalRepository = animalRepository;
   final AnimalRepository _animalRepository;
 
   @override
-  FutureOr<String> loadData(DataS<String> oldState, LoadDataE<String> event) {
-    return _animalRepository.getAnimal(event.params!);
-  }
+  FutureOr<String> loadData(DataS<String> oldState, LoadDataE<int> event) =>
+      _animalRepository.getAnimal(event.params!);
+
+  @override
+  FutureOr<String?> submitData(
+          LoadedDataS<String, int> oldState, SubmitDataE<String, int> event) =>
+      _animalRepository.saveAnimal(event.params!, event.data);
 }
 
 class SimpleBlocObserver extends BlocObserver {
@@ -59,69 +63,93 @@ class HomeScreen extends StatelessWidget {
     super.key,
   });
 
+  void _showEditDialog(BuildContext context, LoadedS<String, int> state) {
+    final controller = TextEditingController(text: state.data);
+    showDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: const Text('Edit'),
+            actions: [
+              TextButton(
+                onPressed: Navigator.of(context).pop,
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  context
+                      .read<AnimalBloc>()
+                      .add(SubmitDataE(controller.text, params: state.params!));
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Submit'),
+              ),
+            ],
+            content: TextField(controller: controller),
+          );
+        });
+  }
+
   void _showSnackBar(BuildContext context, String text) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       backgroundColor: Colors.red,
       content: Text(text),
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 2000),
     ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       body: Center(
           child: BlocProvider(
               create: (_) => AnimalBloc(animalRepository: AnimalRepository()),
               child: BlocConsumer<AnimalBloc, DataS<String>>(
                 listener: (context, state) {
-                  if (state is ReloadingDataErrorS<String, String>) {
-                    _showSnackBar(
-                        context, 'Reloading animal error: ${state.data}');
-                  } else if (state is LoadingDataErrorS<String, String>) {
-                    _showSnackBar(
-                        context, 'Loading animal error: ${state.error}');
+                  if (state is ReloadingDataErrorS<String, int>) {
+                    _showSnackBar(context, 'Reloading error: ${state.error}');
+                  } else if (state is LoadingDataErrorS<String, int>) {
+                    _showSnackBar(context, 'Loading error: ${state.error}');
+                  } else if (state is SubmittingDataErrorS<String, int>) {
+                    _showSnackBar(context, 'Submitting error: ${state.error}');
                   }
                 },
                 builder: (context, state) {
-                  if (state is LoadingDataS<String>) {
-                    return const Text('Loading animal...');
-                  }
-                  if (state is UnloadedS<String>) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('Animal not loaded'),
-                        ElevatedButton(
-                          onPressed: () {
-                            context
-                                .read<AnimalBloc>()
-                                .add(const LoadDataE(params: 'some args'));
-                          },
-                          child: const Text('Load Animal'),
-                        ),
-                      ],
+                  if (state is UnloadedDataS) {
+                    return ElevatedButton(
+                      onPressed: () => context
+                          .read<AnimalBloc>()
+                          .add(const LoadDataE(params: 0)),
+                      child: const Text('Load'),
                     );
                   }
-                  if (state is LoadedDataS<String, String>) {
+                  if (state is LoadingDataS) {
+                    return const Text('Loading...');
+                  }
+                  if (state is LoadedS<String, int>) {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (state is ReloadingDataS) Text('Next loading...'),
+                        if (state is SubmittingDataS) Text('Submitting...'),
                         Text(state.data),
                         ElevatedButton(
-                          onPressed: () {
-                            context
-                                .read<AnimalBloc>()
-                                .add(const ReloadDataE(params: 'some args'));
-                          },
-                          child: const Text('Reload Animal'),
+                          onPressed: () => context
+                              .read<AnimalBloc>()
+                              .add(ReloadDataE(params: state.params! + 1)),
+                          child: const Text('Load next'),
                         ),
+                        ElevatedButton(
+                          onPressed: () {
+                            _showEditDialog(context, state);
+                          },
+                          child: const Text('Edit'),
+                        )
                       ],
                     );
                   }
-                  if (state is ReloadingDataS<String, String>) {
-                    return const Text('Loading animal...');
-                  }
+
                   return const SizedBox();
                 },
               ))),

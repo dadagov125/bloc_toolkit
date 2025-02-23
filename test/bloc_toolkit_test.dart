@@ -1,15 +1,18 @@
 //ignore_for_file: lines_longer_than_80_chars, one_member_abstracts
+// ignore_for_file: unreachable_from_main, discarded_futures
+
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bloc_toolkit/bloc_toolkit.dart';
 import 'package:bloc_toolkit/src/data_bloc/data_bloc.dart';
-import 'package:bloc_toolkit/src/list_bloc/list_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 abstract class DataRepository {
-  Future<int> loadData(String params);
+  Future<int?> loadData(String params);
+
+  Future<int?> submitData(String params);
 }
 
 class TestInternalDataBloc extends InternalDataBloc<int, String> {
@@ -17,9 +20,15 @@ class TestInternalDataBloc extends InternalDataBloc<int, String> {
   final DataRepository repository;
 
   @override
-  FutureOr<int> loadData(DataS<int> oldState, LoadDataE<String> event) {
-    return repository.loadData(event.params!);
-  }
+  FutureOr<int?> loadData(DataS<int> oldState, LoadDataE<String> event) =>
+      repository.loadData(event.params!);
+
+  @override
+  FutureOr<int?> submitData(
+    LoadedS<int, String> oldState,
+    SubmitDataE<int, String> event,
+  ) =>
+      repository.submitData(event.params!);
 }
 
 class MockDataException extends Mock implements DataException {}
@@ -32,6 +41,7 @@ class MockIdleS extends Mock implements IdleS<int> {}
 
 class MockLoadingS extends Mock implements LoadingS<int> {}
 
+// ignore: avoid_implementing_value_types
 class MockErrorS extends Mock implements ErrorS<int> {}
 
 abstract class ListRepository {
@@ -42,9 +52,9 @@ class MockListRepository extends Mock implements ListRepository {}
 
 class TestListBloc extends ListBloc<int> {
   TestListBloc({
+    required this.repository,
     List<int>? initialList,
     ListParams<int>? initialParams,
-    required this.repository,
   }) : super(
           initialList: initialList,
           initialParams: initialParams,
@@ -56,16 +66,13 @@ class TestListBloc extends ListBloc<int> {
   FutureOr<List<int>> loadData(
     DataS<List<int>> oldState,
     LoadDataE<ListParams<int>> event,
-  ) {
-    return repository.loadData();
-  }
+  ) =>
+      repository.loadData();
 }
 
 class IntComparator extends Comparator<int> {
   @override
-  int compare(int a, int b) {
-    return a.compareTo(b);
-  }
+  int compare(int a, int b) => a.compareTo(b);
 }
 
 class IntFilterPredicate extends FilterPredicate<int> {
@@ -74,9 +81,7 @@ class IntFilterPredicate extends FilterPredicate<int> {
   final List<int> filterList;
 
   @override
-  bool test(int e) {
-    return filterList.contains(e);
-  }
+  bool test(int e) => filterList.contains(e);
 }
 
 void main() {
@@ -112,6 +117,19 @@ void main() {
           isA<LoadedDataS<int, String>>()
               .having((s) => s.data, 'data', 1)
               .having((s) => s.params, 'params', 'test'),
+        ],
+      );
+
+      blocTest<InternalDataBloc<int, String>, DataS<int>>(
+        'emits [LoadingDataS, UnloadedDataS] on LoadDataE when loadData return null',
+        build: () => bloc,
+        setUp: () {
+          when(() => repository.loadData(any())).thenAnswer((_) async => null);
+        },
+        act: (bloc) => bloc.add(const LoadDataE(params: 'test')),
+        expect: () => [
+          isA<LoadingDataS<int>>(),
+          isA<UnloadedDataS<int>>(),
         ],
       );
 
@@ -158,7 +176,7 @@ void main() {
       );
 
       blocTest<InternalDataBloc<int, String>, DataS<int>>(
-        'emits [ReloadingDataS, LoadedDataSuccessS] on ReloadDataE',
+        'emits [ReloadingDataS, LoadedDataSuccessS(with update data)] on ReloadDataE when loadData return data',
         build: () => bloc,
         seed: () => const LoadedDataS<int, String>(0, params: 'test'),
         act: (bloc) => bloc.add(
@@ -171,6 +189,27 @@ void main() {
               .having((s) => s.params, 'params', 'test2'),
           isA<LoadedDataS<int, String>>()
               .having((s) => s.data, 'data', 1)
+              .having((s) => s.params, 'params', 'test2'),
+        ],
+      );
+
+      blocTest<InternalDataBloc<int, String>, DataS<int>>(
+        'emits [ReloadingDataS, LoadedDataSuccessS(without update data)] on ReloadDataE when loadData return null',
+        build: () => bloc,
+        seed: () => const LoadedDataS<int, String>(0, params: 'test'),
+        setUp: () {
+          when(() => repository.loadData(any())).thenAnswer((_) async => null);
+        },
+        act: (bloc) => bloc.add(
+          const ReloadDataE(params: 'test2', isNextLoading: true),
+        ),
+        expect: () => [
+          isA<ReloadingDataS<int, String>>()
+              .having((s) => s.isNextLoading, 'isNextLoading', true)
+              .having((s) => s.data, 'data', 0)
+              .having((s) => s.params, 'params', 'test2'),
+          isA<LoadedDataS<int, String>>()
+              .having((s) => s.data, 'data', 0)
               .having((s) => s.params, 'params', 'test2'),
         ],
       );
@@ -218,7 +257,7 @@ void main() {
           isA<ReloadingDataErrorS<int, String>>()
               .having((s) => s.data, 'data', 0)
               .having((s) => s.params, 'params', 'test2')
-              .having((s) => s.error, 'error', isA<DataException>()),
+              .having((s) => s.error, 'error', isA<UnhandledDataException>()),
           isA<LoadedDataS<int, String>>()
               .having((s) => s.data, 'data', 0)
               .having((s) => s.params, 'params', 'test1'),
@@ -271,6 +310,99 @@ void main() {
       );
     });
 
+    group('SubmitDataE', () {
+      blocTest<InternalDataBloc<int, String>, DataS<int>>(
+        'nothing emits when state is not LoadedDataS on SubmitDataE',
+        build: () => bloc,
+        seed: () => const UnloadedDataS<int>(),
+        act: (bloc) => bloc.add(const SubmitDataE(1, params: 'test2')),
+        expect: () => <DataS<int>>[],
+      );
+
+      blocTest<InternalDataBloc<int, String>, DataS<int>>(
+        'emits [SubmittingDataS, LoadedDataSuccessS(with update data)] on SubmitDataE when submitData return data',
+        build: () => bloc,
+        setUp: () {
+          when(() => repository.submitData(any()))
+              .thenAnswer((_) => Future.value(123));
+        },
+        seed: () => const LoadedDataS<int, String>(0, params: 'test'),
+        act: (bloc) => bloc.add(const SubmitDataE(1, params: 'test2')),
+        expect: () => [
+          isA<SubmittingDataS<int, String>>()
+              .having((s) => s.data, 'data', 0)
+              .having((s) => s.params, 'params', 'test2'),
+          isA<LoadedDataS<int, String>>()
+              .having((s) => s.data, 'data', 123)
+              .having((s) => s.params, 'params', 'test2'),
+        ],
+      );
+
+      blocTest<InternalDataBloc<int, String>, DataS<int>>(
+        'emits [SubmittingDataS, LoadedDataSuccessS(without update data)] on SubmitDataE when submitData return null',
+        build: () => bloc,
+        setUp: () {
+          when(() => repository.submitData(any()))
+              .thenAnswer((_) => Future.value());
+        },
+        seed: () => const LoadedDataS<int, String>(0, params: 'test'),
+        act: (bloc) => bloc.add(const SubmitDataE(1, params: 'test2')),
+        expect: () => [
+          isA<SubmittingDataS<int, String>>()
+              .having((s) => s.data, 'data', 0)
+              .having((s) => s.params, 'params', 'test2'),
+          isA<LoadedDataS<int, String>>()
+              .having((s) => s.data, 'data', 0)
+              .having((s) => s.params, 'params', 'test2'),
+        ],
+      );
+
+      blocTest<InternalDataBloc<int, String>, DataS<int>>(
+        'emits [SubmittingDataS, SubmittingDataErrorS] on SubmitDataE with DataException',
+        build: () => bloc,
+        setUp: () {
+          when(() => repository.submitData(any()))
+              .thenThrow(MockDataException());
+        },
+        seed: () => const LoadedDataS<int, String>(0, params: 'test'),
+        act: (bloc) => bloc.add(const SubmitDataE(1, params: 'test2')),
+        expect: () => [
+          isA<SubmittingDataS<int, String>>()
+              .having((s) => s.data, 'data', 0)
+              .having((s) => s.params, 'params', 'test2'),
+          isA<SubmittingDataErrorS<int, String>>()
+              .having((s) => s.data, 'data', 0)
+              .having((s) => s.params, 'params', 'test2')
+              .having((s) => s.error, 'error', isA<DataException>()),
+          isA<LoadedDataS<int, String>>()
+              .having((s) => s.data, 'data', 0)
+              .having((s) => s.params, 'params', 'test'),
+        ],
+      );
+
+      blocTest<InternalDataBloc<int, String>, DataS<int>>(
+        'emits [SubmittingDataS, SubmittingDataErrorS with UnhandledDataException] on SubmitDataE with unhandled exception',
+        build: () => bloc,
+        setUp: () {
+          when(() => repository.submitData(any())).thenThrow(Exception());
+        },
+        seed: () => const LoadedDataS<int, String>(0, params: 'test'),
+        act: (bloc) => bloc.add(const SubmitDataE(1, params: 'test2')),
+        expect: () => [
+          isA<SubmittingDataS<int, String>>()
+              .having((s) => s.data, 'data', 0)
+              .having((s) => s.params, 'params', 'test2'),
+          isA<SubmittingDataErrorS<int, String>>()
+              .having((s) => s.data, 'data', 0)
+              .having((s) => s.params, 'params', 'test2')
+              .having((s) => s.error, 'error', isA<UnhandledDataException>()),
+          isA<LoadedDataS<int, String>>()
+              .having((s) => s.data, 'data', 0)
+              .having((s) => s.params, 'params', 'test'),
+        ],
+      );
+    });
+
     group('InitializeDataE', () {
       blocTest<InternalDataBloc<int, String>, DataS<int>>(
         'nothing emits when state is not UnloadedDataS on InitializeDataE',
@@ -297,10 +429,10 @@ void main() {
     late TestListBloc bloc;
     late MockListRepository repository;
 
-    final List<int> unsortedList = [3, 1, 2, 9, 0, 4, 5, 8, 7, 6];
-    final List<int> sortedList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    final unsortedList = <int>[3, 1, 2, 9, 0, 4, 5, 8, 7, 6];
+    final sortedList = <int>[0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-    ListParams<int> params = ListParams();
+    var params = const ListParams<int>();
 
     setUp(() {
       repository = MockListRepository();
@@ -491,7 +623,7 @@ void main() {
       },
       build: () => bloc,
       act: (bloc) {
-        bloc.add(SelectE(1));
+        bloc.add(const SelectE(1));
       },
       expect: () => [
         isA<SelectedS<int>>()
@@ -513,9 +645,9 @@ void main() {
         );
       },
       build: () => bloc,
-      seed: () => SelectedS<int>(items: [1, 2, 3], selected: 1),
+      seed: () => const SelectedS<int>(items: [1, 2, 3], selected: 1),
       act: (bloc) {
-        bloc.add(SelectE(null));
+        bloc.add(const SelectE(null));
       },
       expect: () => [
         isA<SelectS<int>>().having((s) => s.items, 'items', [1, 2, 3]),
@@ -529,10 +661,10 @@ void main() {
           items: [1, 2, 3],
         );
       },
-      seed: () => SelectedS<int>(items: [1, 2, 3], selected: 1),
+      seed: () => const SelectedS<int>(items: [1, 2, 3], selected: 1),
       build: () => bloc,
       act: (bloc) {
-        bloc.add(SelectE(2));
+        bloc.add(const SelectE(2));
       },
       expect: () => [
         isA<SelectedS<int>>()

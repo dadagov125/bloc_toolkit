@@ -10,5 +10,5 @@ class UnhandledDataException extends DataException {
   final StackTrace stackTrace;
 
   @override
-  toString() => 'UnhandledDataException: $error';
+  String toString() => 'UnhandledDataException: $error';
 }

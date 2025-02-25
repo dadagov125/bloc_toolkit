@@ -2,7 +2,7 @@
 
 This package, `bloc_toolkit`, provides a complete set of tools for efficient and flexible state management 
 in Flutter apps using the Bloc pattern. It is designed to simplify app development with Bloc, offering 
-advanced features for loading, reloading, updating, submitting, and initializing data.
+advanced features for loading, reloading, updating, saving, and initializing data.
 
 ## DataBloc
 
@@ -25,8 +25,8 @@ class AnimalBloc extends DataBloc<String, int> {
       _animalRepository.getAnimal(event.params!);
 
   @override
-  FutureOr<String?> submitData(
-          LoadedDataS<String, int> oldState, SubmitDataE<String, int> event) =>
+  FutureOr<String?> saveData(
+          LoadedDataS<String, int> oldState, SaveDataE<String, int> event) =>
       _animalRepository.saveAnimal(event.params!, event.data);
 }
 ```
@@ -46,16 +46,16 @@ class AnimalBloc extends DataBloc<String, int> {
           if (state is UnloadedDataS<String>) {
             return ...
           }
-          if (state is LoadingDataS<String>) {
-            return ...
-          }
           if (state is LoadedDataS<String, int>) {
             return ...
           }
           if (state is ReloadingDataS<String, int>) {
             return ...
           }
-          if(state is SubmittingDataS<String, int>){
+          if(state is SavingDataS<String, int>){
+            return ...
+          }
+          if (state is LoadingDataS<String>) {
             return ...
           }
           return ...
@@ -87,7 +87,7 @@ class AnimalBloc extends DataBloc<String, int> {
           if (state.isLoaded) {
             return ...
           }
-          if(state.isSubmitting){
+          if(state.isSaving){
             return ...
           }
           return ...
@@ -113,8 +113,8 @@ class AnimalBloc extends DataBloc<String, int> {
         // or
         animalBloc.add(UpdateDataE((currentData) => 'cat'));
         
-        //also you can change and submit data
-        animalBloc.add(SubmitDataE('cat', params: 0));
+        //also you can change and save data
+        animalBloc.add(SaveDataE('cat', params: 0));
         
       
 ```
@@ -143,8 +143,8 @@ class AnimalBloc extends DataBloc<String, int> {
 * `LoadedDataS:` The state when data has been successfully loaded or initialized successfully
 * `ReloadingDataS:` The state when data is being reloaded.
 * `ReloadingDataErrorS:` The state when a data reload error occurred.
-* `SubmittingDataS:` State when data is being submitted.
-* `SubmittingDataErrorS:` State when a data submission error occurred.
+* `SavingDataS:` State when data is being saved.
+* `SavingDataErrorS:` State when a data submission error occurred.
 
 ### Events
 
@@ -154,7 +154,7 @@ The DataBloc class can handle the following events:
 * `InitializeDataE:` Event to initialize data without loading.
 * `ReloadDataE:` Event to reload data when it has already been loaded or initialized.
 * `UpdateDataE:` Event to update data when it is already loaded or initialized.
-* `SubmitDataE:` Event to submit data.
+* `SaveDataE:` Event to save data.
 
 #### Classes relationships
 

@@ -94,22 +94,22 @@ class ReloadingDataErrorS<Data, Params> extends LoadedS<Data, Params>
   int get hashCode => super.hashCode ^ error.hashCode;
 }
 
-///Submit
+///Save
 @immutable
-class SubmittingDataS<Data, Params> extends LoadedS<Data, Params>
+class SavingDataS<Data, Params> extends LoadedS<Data, Params>
     implements LoadingS<Data> {
-  SubmittingDataS(
+  SavingDataS(
     LoadedS<Data, Params> oldState, {
     Params? params,
   }) : super(oldState.data, params: params);
 }
 
 @immutable
-class SubmittingDataErrorS<Data, Params> extends LoadedS<Data, Params>
+class SavingDataErrorS<Data, Params> extends LoadedS<Data, Params>
     // ignore: avoid_implementing_value_types
     implements
         ErrorS<Data> {
-  SubmittingDataErrorS(
+  SavingDataErrorS(
     LoadedS<Data, Params> oldState,
     this.error, {
     Params? params,

@@ -5,7 +5,7 @@ extension DataStateExtention<Data> on DataS<Data> {
 
   bool get isLoading => this is LoadingS;
 
-  bool get isSubmitting => this is SubmittingDataS;
+  bool get isSaving => this is SavingDataS;
 
   bool get isLoaded => this is LoadedS;
 

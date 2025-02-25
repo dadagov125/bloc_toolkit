@@ -22,8 +22,8 @@ class AnimalBloc extends DataBloc<String, int> {
       _animalRepository.getAnimal(event.params!);
 
   @override
-  FutureOr<String?> submitData(
-          LoadedDataS<String, int> oldState, SubmitDataE<String, int> event) =>
+  FutureOr<String?> saveData(
+          LoadedDataS<String, int> oldState, SaveDataE<String, int> event) =>
       _animalRepository.saveAnimal(event.params!, event.data);
 }
 
@@ -79,10 +79,10 @@ class HomeScreen extends StatelessWidget {
                 onPressed: () {
                   context
                       .read<AnimalBloc>()
-                      .add(SubmitDataE(controller.text, params: state.params!));
+                      .add(SaveDataE(controller.text, params: state.params!));
                   Navigator.of(context).pop();
                 },
-                child: const Text('Submit'),
+                child: const Text('Save'),
               ),
             ],
             content: TextField(controller: controller),
@@ -111,8 +111,8 @@ class HomeScreen extends StatelessWidget {
                     _showSnackBar(context, 'Reloading error: ${state.error}');
                   } else if (state is LoadingDataErrorS<String, int>) {
                     _showSnackBar(context, 'Loading error: ${state.error}');
-                  } else if (state is SubmittingDataErrorS<String, int>) {
-                    _showSnackBar(context, 'Submitting error: ${state.error}');
+                  } else if (state is SavingDataErrorS<String, int>) {
+                    _showSnackBar(context, 'Saving error: ${state.error}');
                   }
                 },
                 builder: (context, state) {
@@ -132,7 +132,7 @@ class HomeScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (state is ReloadingDataS) Text('Next loading...'),
-                        if (state is SubmittingDataS) Text('Submitting...'),
+                        if (state is SavingDataS) Text('Saving...'),
                         Text(state.data),
                         ElevatedButton(
                           onPressed: () => context

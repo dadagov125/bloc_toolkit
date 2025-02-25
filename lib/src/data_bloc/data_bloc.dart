@@ -45,13 +45,13 @@ typedef OnReloadingError<Data, Params> = void Function(
   Params? params,
 });
 
-typedef OnSubmitting<Data, Params> = void Function(
+typedef OnSaving<Data, Params> = void Function(
   Emitter<DataS<Data>> emit,
   LoadedDataS<Data, Params> oldState,
-  SubmitDataE<Data, Params> event,
+  SaveDataE<Data, Params> event,
 );
 
-typedef OnSubmittingError<Data, Params> = void Function(
+typedef OnSavingError<Data, Params> = void Function(
   DataException error,
   LoadedDataS<Data, Params> oldState,
   Emitter<DataS<Data>> emit, {
@@ -107,26 +107,26 @@ void _$onReloadingError<Data, Params>(
   emit(LoadedDataS(oldState.data, params: oldState.params));
 }
 
-void _$onSubmitting<Data, Params>(
+void _$onSaving<Data, Params>(
   Emitter<DataS<Data>> emit,
   LoadedDataS<Data, Params> oldState,
-  SubmitDataE<Data, Params> event,
+  SaveDataE<Data, Params> event,
 ) {
   emit(
-    SubmittingDataS(
+    SavingDataS(
       oldState,
       params: event.params,
     ),
   );
 }
 
-void _$onSubmittingError<Data, Params>(
+void _$onSavingError<Data, Params>(
   DataException error,
   LoadedDataS<Data, Params> state,
   Emitter<DataS<Data>> emit, {
   Params? params,
 }) {
-  emit(SubmittingDataErrorS(state, error, params: params));
+  emit(SavingDataErrorS(state, error, params: params));
   emit(LoadedDataS(state.data, params: state.params));
 }
 
@@ -134,22 +134,22 @@ void _$onSubmittingError<Data, Params>(
 abstract class InternalDataBloc<Data, Params>
     extends Bloc<DataE<Params>, DataS<Data>> {
   InternalDataBloc({
-    DataS<Data> initialState = const UnloadedDataS(),
+    required DataS<Data> initialState,
     EventTransformer<DataE<Params>>? transformer,
     OnLoading<Data>? overridedOnLoading,
     OnLoaded<Data, Params>? overridedOnLoaded,
     OnLoadingError<Data, Params>? overridedOnLoadingError,
     OnReloading<Data, Params>? overridedOnReloading,
     OnReloadingError<Data, Params>? overridedOnReloadingError,
-    OnSubmitting<Data, Params>? overridedOnSubmitting,
-    OnSubmittingError<Data, Params>? overridedOnSubmittingError,
+    OnSaving<Data, Params>? overridedOnSaving,
+    OnSavingError<Data, Params>? overridedOnSavingError,
   })  : _onLoading = overridedOnLoading ?? _$onLoading,
         _onLoaded = overridedOnLoaded ?? _$onLoaded,
         _onLoadingError = overridedOnLoadingError ?? _$onLoadingError,
         _onReloading = overridedOnReloading ?? _$onReloading,
         _onReloadingError = overridedOnReloadingError ?? _$onReloadingError,
-        _onSubmitting = overridedOnSubmitting ?? _$onSubmitting,
-        _onSubmittingError = overridedOnSubmittingError ?? _$onSubmittingError,
+        _onSaving = overridedOnSaving ?? _$onSaving,
+        _onSavingError = overridedOnSavingError ?? _$onSavingError,
         super(initialState) {
     on<DataE<Params>>(
       _handleEvent,
@@ -162,17 +162,17 @@ abstract class InternalDataBloc<Data, Params>
   final OnLoadingError<Data, Params> _onLoadingError;
   final OnReloading<Data, Params> _onReloading;
   final OnReloadingError<Data, Params> _onReloadingError;
-  final OnSubmitting<Data, Params> _onSubmitting;
-  final OnSubmittingError<Data, Params> _onSubmittingError;
+  final OnSaving<Data, Params> _onSaving;
+  final OnSavingError<Data, Params> _onSavingError;
 
   @protected
   FutureOr<Data?> loadData(DataS<Data> oldState, LoadDataE<Params> event) =>
       null;
 
   @protected
-  FutureOr<Data?> submitData(
+  FutureOr<Data?> saveData(
     LoadedDataS<Data, Params> oldState,
-    SubmitDataE<Data, Params> event,
+    SaveDataE<Data, Params> event,
   ) =>
       null;
 
@@ -194,8 +194,8 @@ abstract class InternalDataBloc<Data, Params>
     if (event is InitializeDataE<Data, Params>) {
       return _initialize(event, emit);
     }
-    if (event is SubmitDataE<Data, Params>) {
-      return _submit(event, emit);
+    if (event is SaveDataE<Data, Params>) {
+      return _save(event, emit);
     }
   }
 
@@ -233,27 +233,27 @@ abstract class InternalDataBloc<Data, Params>
     }
   }
 
-  FutureOr<void> _submit(
-    SubmitDataE<Data, Params> event,
+  FutureOr<void> _save(
+    SaveDataE<Data, Params> event,
     Emitter<DataS<Data>> emit,
   ) async {
     final oldState = state;
     if (oldState is! LoadedDataS<Data, Params>) {
       return;
     }
-    _onSubmitting(emit, oldState, event);
+    _onSaving(emit, oldState, event);
     try {
-      final data = await submitData(oldState, event);
+      final data = await saveData(oldState, event);
       _onLoaded(emit, data ?? oldState.data, params: event.params);
     } on DataException catch (error) {
-      _onSubmittingError(
+      _onSavingError(
         error,
         oldState,
         emit,
         params: event.params,
       );
     } on Object catch (error, stackTrace) {
-      _onSubmittingError(
+      _onSavingError(
         UnhandledDataException(error: error, stackTrace: stackTrace),
         oldState,
         emit,
@@ -344,6 +344,7 @@ abstract class DataBloc<Data, Params> extends InternalDataBloc<Data, Params> {
     OnLoadingError<Data, Params>? overridedOnLoadingError,
     OnReloadingError<Data, Params>? overridedOnReloadingError,
   }) : super(
+          initialState: UnloadedDataS<Data>(),
           transformer: transformer,
           overridedOnLoadingError: overridedOnLoadingError,
           overridedOnReloadingError: overridedOnReloadingError,

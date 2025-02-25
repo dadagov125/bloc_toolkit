@@ -278,7 +278,7 @@ void main() {
         'emits [LoadedDataS] on UpdateDataE',
         build: () => bloc,
         seed: () => const LoadedDataS<int, String>(0, params: 'test1'),
-        act: (bloc) => bloc.add(UpdateDataE((data) => 1, params: 'test2')),
+        act: (bloc) => bloc.add(TransformDataE((data) => 1, params: 'test2')),
         expect: () => [
           isA<LoadedDataS<int, String>>()
               .having((s) => s.data, 'data', 1)
@@ -291,7 +291,7 @@ void main() {
         build: () => bloc,
         seed: () => const LoadedDataS<int, String>(0, params: 'test1'),
         act: (bloc) => bloc.add(
-          UpdateDataE(
+          TransformDataE(
             (data) {
               throw Exception();
             },

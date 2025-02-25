@@ -42,7 +42,7 @@ void _$onLoaded<T>(
   emit(LoadedDataS(list, params: params));
 }
 
-class ApplyParamsE<T> extends UpdateDataE<List<T>, ListParams<T>> {
+class ApplyParamsE<T> extends TransformDataE<List<T>, ListParams<T>> {
   ApplyParamsE(ListParams<T> params) : super((data) => data, params: params);
 }
 

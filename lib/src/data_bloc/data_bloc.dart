@@ -188,8 +188,8 @@ abstract class InternalDataBloc<Data, Params>
         emit,
       );
     }
-    if (event is UpdateDataE<Data, Params>) {
-      return _update(event, emit);
+    if (event is TransformDataE<Data, Params>) {
+      return _transform(event, emit);
     }
     if (event is InitializeDataE<Data, Params>) {
       return _initialize(event, emit);
@@ -297,8 +297,8 @@ abstract class InternalDataBloc<Data, Params>
     }
   }
 
-  FutureOr<void> _update(
-    UpdateDataE<Data, Params> event,
+  FutureOr<void> _transform(
+    TransformDataE<Data, Params> event,
     Emitter<DataS<Data>> emit,
   ) {
     final oldState = state;
@@ -307,7 +307,7 @@ abstract class InternalDataBloc<Data, Params>
       try {
         _onLoaded(
           emit,
-          event.update(
+          event.transform(
             oldState.data,
           ),
           params: params ?? oldState.params,

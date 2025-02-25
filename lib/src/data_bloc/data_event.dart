@@ -41,10 +41,10 @@ class ReloadDataE<Params> extends LoadDataE<Params> {
 }
 
 @immutable
-class UpdateDataE<Data, Params> extends DataE<Params> {
-  const UpdateDataE(this.update, {Params? params}) : super(params: params);
+class TransformDataE<Data, Params> extends DataE<Params> {
+  const TransformDataE(this.transform, {Params? params}) : super(params: params);
 
-  final Data Function(Data oldData) update;
+  final Data Function(Data oldData) transform;
 }
 
 @immutable

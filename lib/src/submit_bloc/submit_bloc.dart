@@ -8,6 +8,21 @@ part 'submit_event.dart';
 
 part 'submit_state.dart';
 
+typedef onSubmitted<Request, Response> = void Function(
+  SubmitE<Request> event,
+  Response response,
+  Emitter<SubmitS<Request>> emit,
+);
+
+void _$onSubmitted<Request, Response>(
+  SubmitE<Request> event,
+  Response response,
+  Emitter<SubmitS<Request>> emit,
+) {
+  emit(SubmittedS(request: event.request, response: response));
+  emit(SubmitReadyS<Request>());
+}
+
 typedef OnSubmitError<Request> = void Function(
   DataException error,
   SubmitE<Request> event,
@@ -27,8 +42,10 @@ abstract class SubmitBloc<Request, Response>
     extends Bloc<SubmitE<Request>, SubmitS<Request>> {
   SubmitBloc({
     OnSubmitError<Request>? overridedOnSubmitError,
+    onSubmitted<Request, Response>? overridedOnSubmitted,
     EventTransformer<SubmitE<Request>>? transformer,
   })  : _onSubmitError = overridedOnSubmitError ?? _$onSubmitError,
+        _onSubmitted = overridedOnSubmitted ?? _$onSubmitted,
         super(SubmitReadyS()) {
     on<SubmitE<Request>>(
       _handleEvent,
@@ -37,6 +54,7 @@ abstract class SubmitBloc<Request, Response>
   }
 
   final OnSubmitError<Request> _onSubmitError;
+  final onSubmitted<Request, Response> _onSubmitted;
 
   FutureOr<void> _handleEvent(
     SubmitE<Request> event,
@@ -45,7 +63,7 @@ abstract class SubmitBloc<Request, Response>
     try {
       emit(SubmittingS(event.request));
       final response = await submit(event);
-      emit(SubmittedS(request: event.request, response: response));
+      _onSubmitted(event, response, emit);
     } on DataException catch (error) {
       _onSubmitError(
         error,

@@ -423,6 +423,25 @@ void main() {
         ],
       );
     });
+
+    group('ResetDataE', () {
+      blocTest<InternalDataBloc<int, String>, DataS<int>>(
+        'nothing emits when state is not LoadedDataS on ResetDataE',
+        build: () => bloc,
+        seed: () => const UnloadedDataS<int>(),
+        act: (bloc) => bloc.add(const ResetDataE<String>()),
+        expect: () => <DataS<int>>[],
+      );
+
+      blocTest<InternalDataBloc<int, String>, DataS<int>>(
+        'emits [UnloadedDataS] on ResetDataE',
+        build: () => bloc,
+        seed: () => const LoadedDataS<int, String>(0, params: 'test1'),
+        act: (bloc) => bloc.add(const ResetDataE<String>()),
+        expect: () => [const UnloadedDataS<int>()],
+      );
+    });
+
   });
 
   group('ListBloc', () {

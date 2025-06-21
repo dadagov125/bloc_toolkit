@@ -42,7 +42,8 @@ class ReloadDataE<Params> extends LoadDataE<Params> {
 
 @immutable
 class TransformDataE<Data, Params> extends DataE<Params> {
-  const TransformDataE(this.transform, {Params? params}) : super(params: params);
+  const TransformDataE(this.transform, {Params? params})
+      : super(params: params);
 
   final Data Function(Data oldData) transform;
 }
@@ -83,4 +84,18 @@ class SaveDataE<Data, Params> extends DataE<Params> {
 
   @override
   int get hashCode => super.hashCode ^ data.hashCode;
+}
+
+class ResetDataE<Params> extends DataE<Params> {
+  const ResetDataE({Params? params}) : super(params: params);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ResetDataE &&
+          runtimeType == other.runtimeType &&
+          params == other.params;
+
+  @override
+  int get hashCode => params.hashCode;
 }

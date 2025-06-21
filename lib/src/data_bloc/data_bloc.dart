@@ -197,6 +197,9 @@ abstract class InternalDataBloc<Data, Params>
     if (event is SaveDataE<Data, Params>) {
       return _save(event, emit);
     }
+    if (event is ResetDataE<Params>) {
+      return _reset(event, emit);
+    }
   }
 
   Future<void> _load(
@@ -334,6 +337,16 @@ abstract class InternalDataBloc<Data, Params>
         params: event.params,
       );
     }
+  }
+
+  FutureOr<void> _reset(
+    ResetDataE<Params> event,
+    Emitter<DataS<Data>> emit,
+  ) async {
+    if (state is UnloadedDataS<Data>) {
+      return;
+    }
+    emit(UnloadedDataS<Data>());
   }
 }
 

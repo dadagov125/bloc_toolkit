@@ -11,18 +11,34 @@ abstract class UnloadedS<Data> extends DataS<Data> {
 @immutable
 class UnloadedDataS<Data> extends UnloadedS<Data> implements IdleS<Data> {
   const UnloadedDataS();
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UnloadedDataS && runtimeType == other.runtimeType;
+
+  @override
+  int get hashCode => 0;
 }
 
 /// Loading
 @immutable
 class LoadingDataS<Data> extends UnloadedS<Data> implements LoadingS<Data> {
   const LoadingDataS();
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LoadingDataS && runtimeType == other.runtimeType;
+
+  @override
+  int get hashCode => 0;
 }
 
 /// Error
 @immutable
-class LoadingDataErrorS<Data, Params> extends UnloadedS<Data>
-    // ignore: avoid_implementing_value_types
+class LoadingDataErrorS<Data, Params>
+    extends UnloadedS<Data> // ignore: avoid_implementing_value_types
     implements
         ErrorS<Data> {
   const LoadingDataErrorS(this.error, {this.params});
